@@ -585,12 +585,13 @@ function flyPacket(n) {
   sim.append(p);
   const x0 = from.left - box.left + from.width - 30, y0 = from.top - box.top + from.height / 2 - 9;
   const x1 = to.left - box.left + to.width / 2 - 9, y1 = to.top - box.top + 40;
-  const anim = p.animate([
+  p.animate([
     { transform: `translate(${x0}px, ${y0}px) scale(.6)`, opacity: 0 },
     { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 40}px) scale(1.1)`, opacity: 1, offset: .5 },
     { transform: `translate(${x1}px, ${y1}px) scale(.8)`, opacity: .9 },
   ], { duration: 900, easing: 'cubic-bezier(.23,1,.32,1)' });
-  return anim.finished.then(() => p.remove());
+  // ไปต่อตามเวลา ไม่รอ animation จบ เผื่อเบราว์เซอร์หยุด animation ไว้
+  return new Promise(r => setTimeout(() => { p.remove(); r(); }, 900));
 }
 
 async function runStep() {
