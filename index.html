@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0} [hidden]{display:none!important}</style>
+<title>NU Activity ทีม 4 คน</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: แถบเลือกคนติดบนสุด แล้วเรียงลงเป็น 4 ส่วน หน้าจอ ไฟล์ push คำสั่ง ทุกส่วนจางคนอื่นเมื่อเลือกคน */
+:root {
+  --bg: #f5f4f1;
+  --surface: #ffffff;
+  --ink: #1c1c20;
+  --muted: #6b6a72;
+  --line: #e4e2dd;
+  --accent: #e8701f;
+  --m1: #3456c8;
+  --m2: #e8701f;
+  --m3: #17905a;
+  --m4: #9a3fb4;
+  --ghost: #c9c6bf;
+  --code-bg: #1f1f24;
+  --code-fg: #ecebe6;
+  --font-body: "Anuphan", "Sukhumvit Set", "Leelawadee UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151518; --surface: #1f1f24; --ink: #f0efea; --muted: #a09fa8; --line: #33323a;
+    --accent: #f58a3c; --m1: #7c95ff; --m2: #f58a3c; --m3: #3fc58a; --m4: #cf7de6; --ghost: #4a4952;
+    --code-bg: #0e0e11; --code-fg: #ecebe6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151518; --surface: #1f1f24; --ink: #f0efea; --muted: #a09fa8; --line: #33323a;
+  --accent: #f58a3c; --m1: #7c95ff; --m2: #f58a3c; --m3: #3fc58a; --m4: #cf7de6; --ghost: #4a4952;
+  --code-bg: #0e0e11; --code-fg: #ecebe6; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 56px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.25; margin: 0; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 600; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 60ch; }
+header.top { padding-top: 40px; display: grid; gap: 12px; }
+section { display: grid; gap: 18px; }
+.sec-head { display: grid; gap: 6px; }
+
+/* แถบเลือกคน */
+.picker {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  padding-block: 12px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.pick {
+  font: inherit; border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 14px; padding: 10px 12px; cursor: pointer; text-align: left; min-width: 0;
+  display: grid; gap: 2px; transition: border-color .2s, transform .15s, background .2s;
+}
+.pick:active { transform: scale(.97); }
+.pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.pick b { font-size: .95rem; display: flex; align-items: center; gap: 8px; }
+.pick span { font-size: .78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--ink)); flex: none; }
+.pick[aria-pressed="true"] { border-color: var(--c, var(--ink)); background: color-mix(in srgb, var(--c, var(--ink)) 9%, var(--surface)); }
+@media (max-width: 640px) {
+  .picker { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .pick { padding: 8px 6px; text-align: center; }
+  .pick b { justify-content: center; font-size: .85rem; }
+  .pick span { display: none; }
+}
+
+/* ทำให้ของคนอื่นจางลง */
+[data-o] { transition: opacity .35s, filter .35s; }
+body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: grayscale(1); }
+
+/* หน้าจอแอพ */
+.lanes { display: grid; gap: 22px; }
+.lane { display: grid; gap: 10px; }
+.lane-title { font-size: .9rem; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.screen {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px;
+  border-top: 4px solid var(--c); min-width: 0; flex: 1 1 150px; display: grid; gap: 4px; align-content: start;
+}
+.screen b { font-size: .95rem; }
+.screen small { color: var(--muted); font-size: .8rem; line-height: 1.4; }
+.screen code { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.screen.on { box-shadow: 0 6px 22px -10px var(--c); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 6px; vertical-align: middle; }
+
+/* รายละเอียดคน */
+.who {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 22px; border-left: 6px solid var(--c, var(--line));
+}
+@media (max-width: 720px) { .who { grid-template-columns: 1fr; } }
+.who h3 { font-size: 1.3rem; }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 12px; font-size: .92rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.talk { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.talk li { padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: .92rem; }
+.talk li::before { content: "พูดว่า "; color: var(--c); font-weight: 600; }
+.allnote { color: var(--muted); }
+
+/* ไฟล์ */
+.tree { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; overflow-x: auto; }
+.tree ul { list-style: none; margin: 0; padding-left: 18px; }
+.tree > ul { padding-left: 0; }
+.folder { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); padding-block: 4px; }
+.file { display: grid; grid-template-columns: 12px minmax(0, max-content) minmax(0, 1fr); gap: 10px; align-items: baseline; padding-block: 3px; }
+.file i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); align-self: center; }
+.file code { font-family: var(--font-mono); font-size: .85rem; white-space: nowrap; }
+.file span { color: var(--muted); font-size: .85rem; min-width: 0; }
+@media (max-width: 560px) { .file { grid-template-columns: 12px minmax(0, 1fr); } .file span { grid-column: 2; } }
+
+/* push simulation */
+.sim { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: grid; gap: 18px; position: relative; overflow: hidden; }
+.sim-grid { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 720px) { .sim-grid { grid-template-columns: 1fr; } }
+.laptops { display: grid; gap: 8px; }
+.laptop { border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; transition: border-color .3s, background .3s; }
+.laptop .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
+.laptop b { font-size: .92rem; }
+.laptop small { display: block; color: var(--muted); font-size: .78rem; }
+.laptop.done { border-color: var(--c); }
+.laptop.active { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
+.laptop .tick { margin-left: auto; font-size: .8rem; color: var(--c); font-weight: 600; opacity: 0; transition: opacity .3s; }
+.laptop.done .tick { opacity: 1; }
+.repo { border: 2px dashed var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.repo-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
+.repo-head code { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.tile {
+  border-radius: 10px; padding: 8px 10px; font-size: .8rem; line-height: 1.35; min-height: 52px;
+  border: 1.5px solid var(--line); color: var(--muted); background: var(--bg); transition: background .4s, border-color .4s, color .4s, transform .4s;
+}
+.tile small { display: block; font-size: .7rem; }
+.tile.empty { opacity: .35; border-style: dashed; }
+.tile.temp { border-style: dashed; border-color: var(--ghost); }
+.tile.temp small::after { content: "ไฟล์ชั่วคราว"; }
+.tile.real { background: color-mix(in srgb, var(--c) 14%, var(--surface)); border-color: var(--c); color: var(--ink); }
+.tile.real small::after { content: "ของจริง"; color: var(--c); font-weight: 600; }
+.tile.flash { transform: scale(1.06); }
+.status { font-size: .95rem; padding: 12px 14px; border-radius: 12px; background: var(--bg); min-height: 3.2em; }
+.status b { color: var(--c, var(--ink)); }
+.log { font-family: var(--font-mono); font-size: .8rem; display: grid; gap: 4px; color: var(--muted); }
+.log div { display: flex; gap: 8px; align-items: baseline; }
+.log div::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; transform: translateY(-1px); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  font: inherit; font-weight: 600; border-radius: 999px; padding: 12px 22px; cursor: pointer;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--bg); transition: transform .15s;
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:active { transform: scale(.97); }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.packet {
+  position: absolute; width: 18px; height: 18px; border-radius: 6px; background: var(--c); pointer-events: none;
+  box-shadow: 0 4px 14px -2px var(--c); z-index: 2;
+}
+.order { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .9rem; color: var(--muted); }
+.order .chip { padding: 4px 12px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--c); color: var(--ink); font-weight: 600; }
+
+/* คำสั่ง */
+.cmd-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.cmd-step { display: grid; gap: 8px; }
+.cmd-step h3 { display: flex; gap: 10px; align-items: baseline; }
+.cmd-step h3 em { font-style: normal; color: var(--muted); font-weight: 400; font-size: .9rem; }
+.code { position: relative; background: var(--code-bg); color: var(--code-fg); border-radius: 14px; overflow-x: auto; }
+.code pre { margin: 0; padding: 16px 18px; padding-right: 96px; font-family: var(--font-mono); font-size: .84rem; line-height: 1.7; }
+.copy {
+  position: absolute; top: 10px; right: 10px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+  border-radius: 999px; border: 1px solid #4a4a52; background: #2c2c33; color: #ecebe6; padding: 6px 14px;
+}
+.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.check { font-size: .92rem; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--m3) 12%, var(--surface)); }
+.check code { font-family: var(--font-mono); font-weight: 500; }
+.cmds { display: grid; gap: 18px; }
+.prep { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+.prep ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.trouble { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.trouble th, .trouble td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.trouble th { color: var(--muted); font-weight: 600; }
+.trouble code { font-family: var(--font-mono); font-size: .82rem; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+</style>
+</head>
+<body>
+
+<header class="top wrap" style="gap:12px">
+  <h1>NU Activity Transcript ทีม 4 คน</h1>
+  <p class="lead">กดชื่อสมาชิกด้านล่าง ทั้งหน้าจะไฮไลต์เฉพาะส่วนของคนนั้น ว่าดูแลหน้าจอไหน ไฟล์ไหน ตอนนำเสนอต้องอธิบายอะไร และต้องกอปคำสั่งอะไรไป push</p>
+</header>
+
+<div class="wrap" style="gap:0">
+  <nav class="picker" aria-label="เลือกสมาชิก">
+    <button class="pick" data-pick="all" aria-pressed="true"><b><span class="dot"></span>ทั้งหมด</b><span>ดูภาพรวม</span></button>
+    <button class="pick" data-pick="1" style="--c:var(--m1)" aria-pressed="false"><b><span class="dot"></span>คนที่ 1</b><span>โครงสร้าง ฐานข้อมูล</span></button>
+    <button class="pick" data-pick="2" style="--c:var(--m2)" aria-pressed="false"><b><span class="dot"></span>คนที่ 2</b><span>QR และ GPS</span></button>
+    <button class="pick" data-pick="3" style="--c:var(--m3)" aria-pressed="false"><b><span class="dot"></span>คนที่ 3</b><span>ฝั่งผู้คุม Excel</span></button>
+    <button class="pick" data-pick="4" style="--c:var(--m4)" aria-pressed="false"><b><span class="dot"></span>คนที่ 4</b><span>ฝั่งนิสิต</span></button>
+  </nav>
+</div>
+
+<main class="wrap" style="margin-top:32px">
+
+  <section id="who-sec">
+    <div id="who"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>แอพมีหน้าอะไรบ้าง</h2>
+      <p class="lead">สีขอบบนบอกว่าใครเขียนหน้านั้น เรียงตามลำดับที่ผู้ใช้กดเข้าไป</p>
+    </div>
+    <div class="legend">
+      <span style="--c:var(--m1)"><i></i>คนที่ 1</span>
+      <span style="--c:var(--m2)"><i></i>คนที่ 2</span>
+      <span style="--c:var(--m3)"><i></i>คนที่ 3</span>
+      <span style="--c:var(--m4)"><i></i>คนที่ 4</span>
+    </div>
+    <div class="lanes" id="lanes"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>ไฟล์ในโฟลเดอร์ lib และ test</h2>
+      <p class="lead">จุดสีหน้าไฟล์คือเจ้าของ ไฟล์ของแต่ละคนอยู่ในโฟลเดอร์ <code>member1</code> ถึง <code>member4</code> ใน <code>NU_Activity_push_kits</code></p>
+    </div>
+    <div class="tree" id="tree"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>push ขึ้น GitHub ยังไง</h2>
+      <p class="lead">กดเล่นดูว่าไฟล์ใน repo ค่อยๆ เปลี่ยนจากไฟล์ชั่วคราวเป็นของจริงยังไง คนที่ 1 ต้องขึ้นก่อน คนที่เหลือสลับกันได้ ลำดับนี้เรียงตามการใช้งานจริง</p>
+    </div>
+    <div class="order">
+      ลำดับที่แนะนำ
+      <span class="chip" style="--c:var(--m1)">คนที่ 1</span>
+      <span class="chip" style="--c:var(--m4)">คนที่ 4</span>
+      <span class="chip" style="--c:var(--m3)">คนที่ 3</span>
+      <span class="chip" style="--c:var(--m2)">คนที่ 2</span>
+    </div>
+    <div class="sim" id="sim">
+      <div class="sim-grid">
+        <div class="laptops" id="laptops"></div>
+        <div class="repo" id="repo">
+          <div class="repo-head"><h3>GitHub repo</h3><code>woramets67/NU_Activity_Transcription</code></div>
+          <div class="tiles" id="tiles"></div>
+        </div>
+      </div>
+      <div class="status" id="status">repo ยังว่างอยู่ กด "เล่นทั้งหมด" หรือ "ทีละขั้น"</div>
+      <div class="log" id="log"></div>
+      <div class="controls">
+        <button class="btn" id="play">เล่นทั้งหมด</button>
+        <button class="btn ghost" id="step">ทีละขั้น</button>
+        <button class="btn ghost" id="reset">เริ่มใหม่</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>คำสั่งที่ต้องกอปไปวาง</h2>
+      <p class="lead">เปิด PowerShell แล้ววางทีละก้อน เลือกคนด้านบน หรือกดปุ่มด้านล่างเพื่อสลับคำสั่ง</p>
+    </div>
+    <div class="prep">
+      <h3>ทำครั้งเดียวก่อนเริ่ม (ทุกคน)</h3>
+      <ol>
+        <li>กดรับคำเชิญเข้า repo ในอีเมลของ GitHub</li>
+        <li>เอาโฟลเดอร์ <code>NU_Activity_push_kits</code> ไปวางที่ Desktop ห้ามเปลี่ยนชื่อ</li>
+        <li>กดปุ่ม Windows พิมพ์ PowerShell แล้วกด Enter</li>
+        <li>วางคำสั่งข้างล่าง แก้ชื่อกับอีเมลเป็นของตัวเองก่อนกด Enter</li>
+      </ol>
+      <div class="code"><button class="copy" type="button">กอป</button><pre>git config --global user.name "ชื่อของเรา"
+git config --global user.email "อีเมลที่ใช้สมัคร GitHub"</pre></div>
+    </div>
+    <div class="cmd-tabs" id="cmdTabs"></div>
+    <div class="cmds" id="cmds"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>ถ้าเจอข้อความพวกนี้</h2></div>
+    <div class="table-wrap">
+      <table class="trouble">
+        <thead><tr><th>ข้อความ</th><th>หมายความว่า</th><th>ทำยังไง</th></tr></thead>
+        <tbody>
+          <tr><td><code>already exists and is not an empty directory</code></td><td>เคย clone ไว้แล้ว</td><td>ไม่เป็นไร คำสั่งต่อไปทำงานต่อได้เอง</td></tr>
+          <tr><td>robocopy ขึ้นตารางตัวเลขยาว</td><td>copy เสร็จแล้ว</td><td>ปกติ ไม่ใช่ error</td></tr>
+          <tr><td><code>rejected</code> ตอน push</td><td>มีคนอื่น push ไปก่อน</td><td>รัน <code>git pull --rebase</code> แล้ว <code>git push</code> อีกรอบ</td></tr>
+          <tr><td><code>Permission denied</code> หรือ <code>403</code></td><td>ยังไม่ได้รับคำเชิญเข้า repo</td><td>กดรับคำเชิญในอีเมล แล้วลอง <code>git push</code> ใหม่</td></tr>
+          <tr><td>ไม่ขึ้น <code>No issues found!</code></td><td>มีอะไรผิด</td><td>ยังไม่ต้อง push แคปหน้าจอส่งในกลุ่ม</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+const REPO = 'https://github.com/woramets67/NU_Activity_Transcription.git';
+const M = {
+  1: { name: 'คนที่ 1', role: 'โครงสร้างแอพ ฐานข้อมูล และระบบสมาชิก', r: 'R3 Transcript, R5 กล่องแจ้งเตือน และฐานของทุกข้อ',
+       lessons: 'บท 8 Form, บท 9 named routes, บท 10 ถึง 11 Provider, บท 13 SQLite, บท 14 skeleton',
+       folder: 'member1', test: 'validators_test.dart',
+       commit: 'Set up Flutter project: models, SQLite, login and transcript',
+       can: 'สมัคร เข้าระบบ และดู Transcript ได้ หน้าของคนอื่นยังเป็นไฟล์ชั่วคราว (skeleton แบบบทที่ 14)',
+       talk: ['DatabaseHelper สร้าง 7 ตาราง และใส่ข้อมูลตัวอย่างตอนเปิดแอพครั้งแรก',
+              'PIN ไม่ได้เก็บตรงๆ เข้ารหัส sha256 ก่อนเก็บลงฐานข้อมูล',
+              'StartScreen ใน main.dart ดูว่าเข้าระบบหรือยัง แล้วพาไปหน้าที่ถูก',
+              'วาง skeleton ของหน้าเพื่อนไว้ก่อนแบบบทที่ 14 แอพจึง build ได้ตั้งแต่ commit แรก'] },
+  2: { name: 'คนที่ 2', role: 'สแกน QR Code และตรวจ GPS', r: 'R2 ยืนยันการเข้าร่วมด้วย QR',
+       lessons: 'บท 2.2 และ 12 async/await, บท 7 setState กับ Timer, แพ็กเกจ mobile_scanner qr_flutter geolocator',
+       folder: 'member2', test: 'qr_service_test.dart',
+       commit: 'Add QR code, GPS check, scan and QR presenter screens',
+       can: 'ผู้คุมเปิด QR นิสิตสแกนรับชั่วโมงได้ ครบทั้งระบบ',
+       talk: ['ใน QR มีลายเซ็น sha256 ถ้าใครแก้ข้อมูล ลายเซ็นจะไม่ตรง แอพจับได้',
+              'claim_service.dart ตรวจ 5 ข้อตามลำดับ ลายเซ็น อายุ 15 วินาที สแกนซ้ำ ลงทะเบียนแล้ว และระยะ 200 ม.',
+              'หน้าจอผู้คุมใช้ Timer นับถอยหลัง สร้าง QR ใหม่ทุก 10 วินาที',
+              'test พิสูจน์ว่าแก้ชั่วโมงใน QR แล้วอ่านไม่ผ่าน'] },
+  3: { name: 'คนที่ 3', role: 'จัดการกิจกรรมและส่งออกรายชื่อเป็น Excel (ฝั่งผู้คุม)', r: 'R4 จัดการรายชื่อและ Excel, R5 ส่งประกาศ',
+       lessons: 'บท 8 Form และ validator, บท 11 Provider, บท 13 SQLite, แพ็กเกจ excel share_plus',
+       folder: 'member3', test: 'excel_export_test.dart',
+       commit: 'Add supervisor screens, roster management and Excel export',
+       can: 'ผู้คุมเข้าระบบ สร้างกิจกรรม ดูรายชื่อ ส่งประกาศ และ export Excel ได้',
+       talk: ['ฟอร์มสร้างกิจกรรมมี validator ทุกช่อง และเช็คว่าเวลาจบต้องหลังเวลาเริ่ม',
+              'filteredRoster ใน supervisor_provider ค้นหาชื่อและกรองสถานะพร้อมกัน',
+              'เพิ่มชื่อนิสิตเองได้ กรณีมือถือแบตหมด ระบบบันทึกว่า "ผู้คุมยืนยันให้"',
+              'ส่งประกาศแล้วสร้างแจ้งเตือนให้ทุกคนในรายชื่อ'] },
+  4: { name: 'คนที่ 4', role: 'แสดงและลงทะเบียนกิจกรรม (ฝั่งนิสิต)', r: 'R1 เห็นกิจกรรมและลงทะเบียนเอง',
+       lessons: 'บท 5 ถึง 6 Row Column Stack ListView, บท 10 Provider, บท 12 FutureBuilder, บท 16 widget test',
+       folder: 'member4', test: 'activity_card_test.dart',
+       commit: 'Add activity list, detail, registration and my activities',
+       can: 'เห็นรายการกิจกรรม กรองประเภท ลงทะเบียน และยกเลิกได้',
+       talk: ['หน้าแรกใช้ ListView.builder กับ ActivityCard ที่เป็น Stack วางป้ายทับโปสเตอร์',
+              'ก่อนลงทะเบียนเช็คจำนวนจากฐานข้อมูลอีกครั้ง ถ้าเต็มแล้วไม่ให้ลง',
+              'ยกเลิกได้เฉพาะก่อนกิจกรรมเริ่ม ที่นั่งคืนทันที',
+              'widget test เขียนแบบเดียวกับตัวอย่างในบทที่ 16'] },
+};
+
+const SCREENS = {
+  'นิสิต': [
+    ['welcome', 1, 'สมัคร / เข้าระบบ', 'รหัสนิสิตกับ PIN'],
+    ['student_shell', 1, 'แถบล่าง 4 แท็บ', 'ปุ่มสแกนสีส้ม'],
+    ['home', 4, 'หน้าแรก', 'รายการกิจกรรม กรองประเภท'],
+    ['activity_detail', 4, 'รายละเอียดกิจกรรม', 'ลงทะเบียน ยกเลิก ดูประกาศ'],
+    ['mine', 4, 'กิจกรรมของฉัน', 'กำลังจะถึง ที่ผ่านมา'],
+    ['scan', 2, 'สแกน QR', 'เปิดกล้อง ตรวจ GPS'],
+    ['claim_result', 2, 'ผลการสแกน', 'บัตรยืนยัน หรือเหตุผลที่ไม่ผ่าน'],
+    ['inbox', 1, 'แจ้งเตือน', 'ตัวเลขยังไม่อ่าน'],
+    ['profile', 1, 'Transcript', 'ชั่วโมงสะสมแยกประเภท'],
+  ],
+  'ผู้คุม': [
+    ['sup_login', 3, 'เข้าโหมดผู้คุม', 'รหัสหน่วยงาน'],
+    ['sup_home', 3, 'กิจกรรมของหน่วยงาน', 'กำลังจัด จะมาถึง จบแล้ว'],
+    ['activity_editor', 3, 'สร้าง / แก้ไขกิจกรรม', 'ฟอร์มพร้อม validator'],
+    ['manage', 3, 'จัดการกิจกรรม', 'รายชื่อ ประกาศ Excel'],
+    ['qr_presenter', 2, 'จอ QR', 'เปลี่ยนทุก 10 วินาที'],
+  ],
+};
+
+const TREE = [
+  ['lib', [
+    ['main.dart', 1, 'จุดเริ่มแอพ MultiProvider'],
+    ['app', [['routes.dart', 1, 'ชื่อหน้าทั้งหมด onGenerateRoute'], ['theme.dart', 1, 'สีและฟอนต์']]],
+    ['models', [['activity.dart  student.dart  registration.dart', 1, 'class ข้อมูล toMap fromMap'], ['credit.dart  announcement.dart  app_notice.dart  claim_result.dart', 1, 'class ข้อมูลที่เหลือ']]],
+    ['helpers', [['database_helper.dart', 1, 'SQLite ทุกตาราง ทุกคนเรียกผ่าน Provider'], ['seed_data.dart', 1, 'กิจกรรมและนิสิตตัวอย่าง']]],
+    ['utils', [['constants.dart', 1, 'ค่าคงที่ ระยะ 200 ม. อายุ QR 15 วิ'], ['thai_date.dart', 1, 'วันที่ พ.ศ.'], ['validators.dart', 1, 'ตรวจรหัสนิสิต PIN']]],
+    ['providers', [['auth_provider.dart', 1, 'เข้าระบบ ออกระบบ โหมดผู้คุม'], ['credit_provider.dart', 1, 'ชั่วโมงสะสม'], ['notice_provider.dart', 1, 'แจ้งเตือน'], ['activity_provider.dart', 4, 'กิจกรรม ลงทะเบียน ยกเลิก'], ['supervisor_provider.dart', 3, 'รายชื่อ ค้นหา ประกาศ']]],
+    ['services', [['qr_service.dart', 2, 'สร้างและอ่าน QR'], ['location_service.dart', 2, 'อ่าน GPS'], ['claim_service.dart', 2, 'ตรวจ 5 ข้อแล้วบันทึกชั่วโมง'], ['excel_export_service.dart', 3, 'สร้างไฟล์ .xlsx แล้วแชร์']]],
+    ['widgets', [['activity_card.dart', 4, 'การ์ดกิจกรรม']]],
+    ['screens/student', [['welcome  student_shell  inbox  profile', 1, '4 หน้า'], ['home  activity_detail  mine', 4, '3 หน้า'], ['scan  claim_result', 2, '2 หน้า']]],
+    ['screens/supervisor', [['sup_login  sup_home  activity_editor  manage', 3, '4 หน้า'], ['qr_presenter', 2, '1 หน้า']]],
+  ]],
+  ['test', [['validators_test.dart', 1, 'unit test'], ['qr_service_test.dart', 2, 'unit test'], ['excel_export_test.dart', 3, 'unit test'], ['activity_card_test.dart', 4, 'widget test แบบบทที่ 16']]],
+  ['pubspec.yaml  android/  ios/  assets/', 1, 'ตั้งค่าโปรเจค สิทธิ์กล้องกับ GPS รูปโปสเตอร์'],
+];
+
+const color = n => `var(--m${n})`;
+
+// ---------- หน้าจอ ----------
+const lanes = document.getElementById('lanes');
+for (const [title, list] of Object.entries(SCREENS)) {
+  const lane = document.createElement('div');
+  lane.className = 'lane';
+  lane.innerHTML = `<div class="lane-title">ฝั่ง${title}</div><div class="flow"></div>`;
+  const flow = lane.querySelector('.flow');
+  for (const [file, owner, name, desc] of list) {
+    const el = document.createElement('div');
+    el.className = 'screen';
+    el.dataset.o = owner;
+    el.style.setProperty('--c', color(owner));
+    el.innerHTML = `<b>${name}</b><small>${desc}</small><code>${file}_screen.dart</code>`;
+    flow.append(el);
+  }
+  lanes.append(lane);
+}
+
+// ---------- ไฟล์ ----------
+function buildTree(items) {
+  const ul = document.createElement('ul');
+  for (const item of items) {
+    const li = document.createElement('li');
+    if (Array.isArray(item[1])) {
+      li.innerHTML = `<div class="folder">${item[0]}/</div>`;
+      li.append(buildTree(item[1]));
+    } else {
+      const [name, owner, desc] = item;
+      li.className = 'file';
+      li.dataset.o = owner;
+      li.style.setProperty('--c', color(owner));
+      li.innerHTML = `<i></i><code>${name}</code><span>${desc}</span>`;
+    }
+    ul.append(li);
+  }
+  return ul;
+}
+document.getElementById('tree').append(buildTree(TREE));
+
+// ---------- รายละเอียดคน ----------
+function renderWho(sel) {
+  const box = document.getElementById('who');
+  if (sel === 'all') {
+    box.innerHTML = `<div class="who"><div style="display:grid;gap:10px"><h3>ภาพรวม</h3>
+      <p class="allnote">แอพมี 14 หน้า แบ่งตามขอบเขตงานที่กรอกในฟอร์ม ทุกคนใช้ Provider กับฐานข้อมูลของคนที่ 1 ไม่มีใครแก้ไฟล์ซ้ำกัน</p></div>
+      <dl class="kv"><dt>คนที่ 1</dt><dd>${M[1].role}</dd><dt>คนที่ 2</dt><dd>${M[2].role}</dd><dt>คนที่ 3</dt><dd>${M[3].role}</dd><dt>คนที่ 4</dt><dd>${M[4].role}</dd></dl></div>`;
+    box.firstElementChild.style.removeProperty('--c');
+    return;
+  }
+  const m = M[sel];
+  const screens = Object.values(SCREENS).flat().filter(s => s[1] == sel).map(s => s[2]).join(', ');
+  box.innerHTML = `<div class="who" style="--c:${color(sel)}">
+    <div style="display:grid;gap:14px">
+      <h3>${m.name}</h3>
+      <dl class="kv">
+        <dt>ขอบเขตงาน</dt><dd>${m.role}</dd>
+        <dt>ความต้องการ</dt><dd>${m.r}</dd>
+        <dt>หน้าจอ</dt><dd>${screens}</dd>
+        <dt>ใช้บทเรียน</dt><dd>${m.lessons}</dd>
+        <dt>โฟลเดอร์</dt><dd><code>${m.folder}</code> test คือ <code>${m.test}</code></dd>
+      </dl>
+    </div>
+    <div style="display:grid;gap:10px;align-content:start">
+      <h3>ตอนนำเสนอ</h3>
+      <ul class="talk">${m.talk.map(t => `<li>${t}</li>`).join('')}</ul>
+    </div></div>`;
+}
+
+// ---------- คำสั่ง ----------
+function cmdBlocks(n) {
+  const m = M[n];
+  const first = n == 1;
+  const a = [
+    'cd ([Environment]::GetFolderPath("Desktop"))',
+    `git clone ${REPO}`,
+    'cd NU_Activity_Transcription',
+    ...(first ? [] : ['git pull']),
+    `robocopy ..\\NU_Activity_push_kits\\${m.folder}\\files . /E`,
+    'flutter pub get',
+    'flutter analyze',
+  ].join('\n');
+  const b = [
+    'git add .',
+    `git commit -m "${m.commit}"`,
+    ...(first ? ['git branch -M main', 'git push -u origin main'] : ['git pull --rebase', 'git push']),
+  ].join('\n');
+  return `
+    <div class="cmd-step"><h3>ก้อนที่ 1 <em>${first ? 'ทำได้เลย' : 'รอคนที่ 1 push ก่อน'}</em></h3>
+      <div class="code"><button class="copy" type="button">กอป</button><pre>${a}</pre></div></div>
+    <div class="check">บรรทัดสุดท้ายต้องขึ้น <code>No issues found!</code> ถ้าขึ้นแล้วค่อยวางก้อนที่ 2</div>
+    <div class="cmd-step"><h3>ก้อนที่ 2 <em>ส่งขึ้น GitHub</em></h3>
+      <div class="code"><button class="copy" type="button">กอป</button><pre>${b}</pre></div></div>
+    <div class="check">เสร็จแล้วบอกในกลุ่มว่า "${m.name} push แล้ว"</div>`;
+}
+let cmdSel = 1;
+const cmdTabs = document.getElementById('cmdTabs');
+for (const n of [1, 2, 3, 4]) {
+  const b = document.createElement('button');
+  b.className = 'pick';
+  b.style.setProperty('--c', color(n));
+  b.dataset.cmd = n;
+  b.innerHTML = `<b><span class="dot"></span>${M[n].name}</b>`;
+  b.addEventListener('click', () => { cmdSel = n; renderCmds(); });
+  cmdTabs.append(b);
+}
+function renderCmds() {
+  document.getElementById('cmds').innerHTML = cmdBlocks(cmdSel);
+  cmdTabs.querySelectorAll('[data-cmd]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cmd == cmdSel));
+}
+
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('.copy');
+  if (!btn) return;
+  const pre = btn.parentElement.querySelector('pre');
+  try {
+    await navigator.clipboard.writeText(pre.textContent);
+    btn.textContent = 'กอปแล้ว';
+  } catch {
+    const r = document.createRange(); r.selectNodeContents(pre);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = 'กด Ctrl+C';
+  }
+  setTimeout(() => (btn.textContent = 'กอป'), 1600);
+});
+
+// ---------- เลือกคน ----------
+function select(sel) {
+  document.body.dataset.sel = sel;
+  document.querySelectorAll('.picker .pick').forEach(b => b.setAttribute('aria-pressed', b.dataset.pick === sel));
+  document.querySelectorAll('[data-o]').forEach(el => el.classList.toggle('on', el.dataset.o === sel));
+  renderWho(sel);
+  if (sel !== 'all') { cmdSel = Number(sel); renderCmds(); }
+  try { localStorage.setItem('nuat-team-sel', sel); } catch {}
+}
+document.querySelectorAll('.picker .pick').forEach(b => b.addEventListener('click', () => select(b.dataset.pick)));
+
+// ---------- จำลองการ push ----------
+const ORDER = [1, 4, 3, 2];
+const tilesEl = document.getElementById('tiles');
+const allScreens = Object.values(SCREENS).flat();
+const TILE_DATA = [
+  ...allScreens.map(s => ({ owner: s[1], label: s[2] })),
+  { owner: 1, label: 'ฐานข้อมูลและ model' },
+  { owner: 2, label: 'qr / gps / claim service' },
+  { owner: 3, label: 'excel service' },
+];
+const tiles = TILE_DATA.map(t => {
+  const el = document.createElement('div');
+  el.className = 'tile empty';
+  el.style.setProperty('--c', color(t.owner));
+  el.innerHTML = `${t.label}<small></small>`;
+  tilesEl.append(el);
+  return { ...t, el };
+});
+const laptopsEl = document.getElementById('laptops');
+const laptops = {};
+for (const n of ORDER) {
+  const el = document.createElement('div');
+  el.className = 'laptop';
+  el.dataset.o = n;
+  el.style.setProperty('--c', color(n));
+  el.innerHTML = `<span class="dot"></span><div><b>${M[n].name}</b><small>โฟลเดอร์ ${M[n].folder}</small></div><span class="tick">push แล้ว</span>`;
+  laptopsEl.append(el);
+  laptops[n] = el;
+}
+const statusEl = document.getElementById('status');
+const logEl = document.getElementById('log');
+const sim = document.getElementById('sim');
+let stepIndex = 0;
+let busy = false;
+let playing = false;
+
+function resetSim() {
+  stepIndex = 0;
+  tiles.forEach(t => (t.el.className = 'tile empty'));
+  Object.values(laptops).forEach(l => (l.className = 'laptop'));
+  logEl.innerHTML = '';
+  statusEl.style.removeProperty('--c');
+  statusEl.textContent = 'repo ยังว่างอยู่ กด "เล่นทั้งหมด" หรือ "ทีละขั้น"';
+  updateButtons();
+}
+
+function flyPacket(n) {
+  const from = laptops[n].getBoundingClientRect();
+  const to = document.getElementById('repo').getBoundingClientRect();
+  const box = sim.getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = 'packet';
+  p.style.setProperty('--c', color(n));
+  sim.append(p);
+  const x0 = from.left - box.left + from.width - 30, y0 = from.top - box.top + from.height / 2 - 9;
+  const x1 = to.left - box.left + to.width / 2 - 9, y1 = to.top - box.top + 40;
+  const anim = p.animate([
+    { transform: `translate(${x0}px, ${y0}px) scale(.6)`, opacity: 0 },
+    { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 40}px) scale(1.1)`, opacity: 1, offset: .5 },
+    { transform: `translate(${x1}px, ${y1}px) scale(.8)`, opacity: .9 },
+  ], { duration: 900, easing: 'cubic-bezier(.23,1,.32,1)' });
+  return anim.finished.then(() => p.remove());
+}
+
+async function runStep() {
+  if (busy || stepIndex >= ORDER.length) return;
+  busy = true; updateButtons();
+  const n = ORDER[stepIndex];
+  const m = M[n];
+  const lap = laptops[n];
+  lap.classList.add('active');
+  statusEl.style.setProperty('--c', color(n));
+  statusEl.innerHTML = `<b>${m.name}</b> กำลัง push โฟลเดอร์ <code>${m.folder}</code>`;
+  await flyPacket(n);
+  if (n === 1) {
+    tiles.forEach((t, i) => setTimeout(() => {
+      t.el.className = 'tile ' + (t.owner === 1 ? 'real' : 'temp');
+      t.el.classList.add('flash');
+      setTimeout(() => t.el.classList.remove('flash'), 300);
+    }, i * 45));
+  } else {
+    tiles.filter(t => t.owner === n).forEach((t, i) => setTimeout(() => {
+      t.el.className = 'tile real flash';
+      setTimeout(() => t.el.classList.remove('flash'), 300);
+    }, i * 110));
+  }
+  await new Promise(r => setTimeout(r, n === 1 ? 900 : 650));
+  lap.classList.remove('active');
+  lap.classList.add('done');
+  const line = document.createElement('div');
+  line.style.setProperty('--c', color(n));
+  line.textContent = `${m.name}: ${m.commit}`;
+  logEl.prepend(line);
+  const left = tiles.filter(t => t.el.classList.contains('temp')).length;
+  statusEl.innerHTML = `<b>${m.name}</b> push แล้ว แอพตอนนี้ ${m.can}` +
+    (stepIndex === ORDER.length - 1 ? ` ไม่เหลือไฟล์ชั่วคราวแล้ว ใครก็ได้รัน <code>flutter test</code> เช็คอีกรอบ` : ` (เหลือไฟล์ชั่วคราว ${left} ชิ้น)`);
+  stepIndex++;
+  busy = false; updateButtons();
+}
+
+async function playAll() {
+  if (playing) return;
+  if (stepIndex >= ORDER.length) resetSim();
+  playing = true; updateButtons();
+  while (stepIndex < ORDER.length) {
+    await runStep();
+    await new Promise(r => setTimeout(r, 700));
+  }
+  playing = false; updateButtons();
+}
+
+function updateButtons() {
+  document.getElementById('step').disabled = busy || playing || stepIndex >= ORDER.length;
+  document.getElementById('play').disabled = playing;
+  document.getElementById('play').textContent = stepIndex >= ORDER.length ? 'เล่นอีกครั้ง' : 'เล่นทั้งหมด';
+  document.getElementById('reset').disabled = busy || playing;
+}
+document.getElementById('play').addEventListener('click', playAll);
+document.getElementById('step').addEventListener('click', runStep);
+document.getElementById('reset').addEventListener('click', resetSim);
+
+// ---------- เริ่ม ----------
+let saved = 'all';
+try { saved = localStorage.getItem('nuat-team-sel') || 'all'; } catch {}
+if (!['all', '1', '2', '3', '4'].includes(saved)) saved = 'all';
+renderCmds();
+select(saved);
+updateButtons();
+</script>
+</body>
+</html>
