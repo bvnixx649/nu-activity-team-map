@@ -4,12 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0} [hidden]{display:none!important}</style>
+</head>
+<body>
 <title>NU Activity ทีม 4 คน</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: แถบเลือกคนติดบนสุด แล้วเรียงลงเป็น 4 ส่วน หน้าจอ ไฟล์ push คำสั่ง ทุกส่วนจางคนอื่นเมื่อเลือกคน */
+/* Layout: แถบเลือกคนติดบนสุด แล้วเรียงลงเป็นส่วนๆ ชั้นของโค้ด ลองโกง QR หน้าจอ ไฟล์ commit คำถาม ทุกส่วนจางของคนอื่นเมื่อเลือกคน */
 :root {
   --bg: #f5f4f1;
   --surface: #ffffff;
@@ -21,9 +23,12 @@
   --m2: #e8701f;
   --m3: #17905a;
   --m4: #9a3fb4;
+  --ok: #17905a;
+  --bad: #c8342c;
   --ghost: #c9c6bf;
   --code-bg: #1f1f24;
   --code-fg: #ecebe6;
+  --code-dim: #9b9aa3;
   --font-body: "Anuphan", "Sukhumvit Set", "Leelawadee UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 }
@@ -31,13 +36,15 @@
   :root:not([data-theme="light"]) {
     --bg: #151518; --surface: #1f1f24; --ink: #f0efea; --muted: #a09fa8; --line: #33323a;
     --accent: #f58a3c; --m1: #7c95ff; --m2: #f58a3c; --m3: #3fc58a; --m4: #cf7de6; --ghost: #4a4952;
-    --code-bg: #0e0e11; --code-fg: #ecebe6; color-scheme: dark;
+    --ok: #3fc58a; --bad: #ff6b60;
+    --code-bg: #0e0e11; --code-fg: #ecebe6; --code-dim: #8a8992; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #151518; --surface: #1f1f24; --ink: #f0efea; --muted: #a09fa8; --line: #33323a;
   --accent: #f58a3c; --m1: #7c95ff; --m2: #f58a3c; --m3: #3fc58a; --m4: #cf7de6; --ghost: #4a4952;
-  --code-bg: #0e0e11; --code-fg: #ecebe6; color-scheme: dark;
+  --ok: #3fc58a; --bad: #ff6b60;
+  --code-bg: #0e0e11; --code-fg: #ecebe6; --code-dim: #8a8992; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
@@ -46,15 +53,16 @@ body {
   padding-block: 0 64px;
 }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
-.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 56px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 64px; }
 h1, h2, h3 { text-wrap: balance; line-height: 1.25; margin: 0; }
 h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 1.5rem; font-weight: 700; }
 h3 { font-size: 1.05rem; font-weight: 600; }
 p { margin: 0; }
-.lead { color: var(--muted); max-width: 60ch; }
+code { font-family: var(--font-mono); font-size: .88em; }
+.lead { color: var(--muted); max-width: 62ch; }
 header.top { padding-top: 40px; display: grid; gap: 12px; }
-section { display: grid; gap: 18px; }
+section { display: grid; gap: 18px; min-width: 0; }
 .sec-head { display: grid; gap: 6px; }
 
 /* แถบเลือกคน */
@@ -69,13 +77,13 @@ section { display: grid; gap: 18px; }
   display: grid; gap: 2px; transition: border-color .2s, transform .15s, background .2s;
 }
 .pick:active { transform: scale(.97); }
-.pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.pick:focus-visible, .chipbtn:focus-visible, .btn:focus-visible, summary:focus-visible, .tog:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .pick b { font-size: .95rem; display: flex; align-items: center; gap: 8px; }
 .pick span { font-size: .78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pick .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--ink)); flex: none; }
 .pick[aria-pressed="true"] { border-color: var(--c, var(--ink)); background: color-mix(in srgb, var(--c, var(--ink)) 9%, var(--surface)); }
 @media (max-width: 640px) {
-  .picker { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .picker { gap: 6px; }
   .pick { padding: 8px 6px; text-align: center; }
   .pick b { justify-content: center; font-size: .85rem; }
   .pick span { display: none; }
@@ -84,6 +92,102 @@ section { display: grid; gap: 18px; }
 /* ทำให้ของคนอื่นจางลง */
 [data-o] { transition: opacity .35s, filter .35s; }
 body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: grayscale(1); }
+body[data-sel]:not([data-sel="all"]) .qa [data-o]:not(.on) { display: none; }
+
+/* รายละเอียดคน */
+.who {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 22px; border-left: 6px solid var(--c, var(--line));
+}
+@media (max-width: 720px) { .who { grid-template-columns: 1fr; } }
+.who h3 { font-size: 1.3rem; }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 12px; font-size: .92rem; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; }
+.talk { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.talk li { padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: .92rem; }
+.talk li::before { content: "พูดว่า "; color: var(--c); font-weight: 600; }
+.allnote { color: var(--muted); }
+
+/* ชั้นของโค้ด */
+.layers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.layer {
+  background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 12px; min-width: 0;
+  display: grid; gap: 2px; align-content: start; transition: border-color .25s, background .25s, transform .25s;
+}
+.layer b { font-size: .95rem; }
+.layer small { color: var(--muted); font-size: .78rem; line-height: 1.4; }
+.layer code { font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.layer.hot { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); transform: translateY(-3px); }
+.layer.seen { border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+@media (max-width: 720px) {
+  .layers { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .layer { padding: 8px 4px; text-align: center; }
+  .layer small, .layer code { display: none; }
+  .layer b { font-size: .75rem; }
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chipbtn {
+  font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 8px 16px;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink); display: inline-flex; gap: 8px; align-items: center;
+}
+.chipbtn i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.chipbtn[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
+.trace { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: grid; gap: 16px; }
+.trace-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.steps-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.steps-dots button {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); background: var(--bg); color: var(--muted);
+  font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.steps-dots button.done { border-color: color-mix(in srgb, var(--c) 50%, var(--line)); color: var(--ink); }
+.steps-dots button.now { border-color: var(--c); background: var(--c); color: var(--surface); }
+.step-body { display: grid; gap: 10px; min-width: 0; }
+.step-where { font-size: .88rem; color: var(--muted); }
+.step-where b { color: var(--c); }
+.step-why { max-width: 70ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  font: inherit; font-weight: 600; border-radius: 999px; padding: 11px 22px; cursor: pointer;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--bg); transition: transform .15s;
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .4; cursor: default; }
+
+/* โค้ด */
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 14px; overflow-x: auto; min-width: 0; }
+.code pre { margin: 0; padding: 14px 18px; font-family: var(--font-mono); font-size: .82rem; line-height: 1.7; }
+.code .cm { color: var(--code-dim); }
+
+/* ลองโกง QR */
+.cheat { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: grid; gap: 18px; }
+.cheat-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 22px; }
+@media (max-width: 720px) { .cheat-grid { grid-template-columns: 1fr; } }
+.togs { display: grid; gap: 8px; align-content: start; }
+.tog { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--bg); cursor: pointer; font-size: .92rem; }
+.tog input { width: 20px; height: 20px; accent-color: var(--m2); flex: none; margin: 0; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checks li {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 12px;
+  border-radius: 12px; border: 1.5px solid var(--line); font-size: .9rem; transition: border-color .3s, background .3s, opacity .3s;
+}
+.checks li .n {
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 700;
+  background: var(--bg); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.checks li small { display: block; color: var(--muted); font-size: .78rem; }
+.checks li.pass { border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); }
+.checks li.pass .n { background: var(--ok); color: var(--surface); }
+.checks li.fail { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); }
+.checks li.fail .n { background: var(--bad); color: var(--surface); }
+.checks li.skip { opacity: .4; }
+.verdict { padding: 14px 16px; border-radius: 14px; font-weight: 600; }
+.verdict.ok { background: color-mix(in srgb, var(--ok) 14%, var(--surface)); color: var(--ink); }
+.verdict.no { background: color-mix(in srgb, var(--bad) 12%, var(--surface)); color: var(--ink); }
+.verdict small { display: block; font-weight: 400; color: var(--muted); font-size: .85rem; }
+.qrjson { font-size: .78rem; }
+.qrjson .bad { color: #ff8a80; }
 
 /* หน้าจอแอพ */
 .lanes { display: grid; gap: 22px; }
@@ -96,25 +200,10 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
 }
 .screen b { font-size: .95rem; }
 .screen small { color: var(--muted); font-size: .8rem; line-height: 1.4; }
-.screen code { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.screen code { font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
 .screen.on { box-shadow: 0 6px 22px -10px var(--c); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 6px; vertical-align: middle; }
-
-/* รายละเอียดคน */
-.who {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px;
-  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 22px; border-left: 6px solid var(--c, var(--line));
-}
-@media (max-width: 720px) { .who { grid-template-columns: 1fr; } }
-.who h3 { font-size: 1.3rem; }
-.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 12px; font-size: .92rem; }
-.kv dt { color: var(--muted); }
-.kv dd { margin: 0; }
-.talk { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
-.talk li { padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: .92rem; }
-.talk li::before { content: "พูดว่า "; color: var(--c); font-weight: 600; }
-.allnote { color: var(--muted); }
 
 /* ไฟล์ */
 .tree { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; overflow-x: auto; }
@@ -123,9 +212,40 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
 .folder { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); padding-block: 4px; }
 .file { display: grid; grid-template-columns: 12px minmax(0, max-content) minmax(0, 1fr); gap: 10px; align-items: baseline; padding-block: 3px; }
 .file i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); align-self: center; }
-.file code { font-family: var(--font-mono); font-size: .85rem; white-space: nowrap; }
+.file code { font-size: .85rem; white-space: nowrap; }
 .file span { color: var(--muted); font-size: .85rem; min-width: 0; }
 @media (max-width: 560px) { .file { grid-template-columns: 12px minmax(0, 1fr); } .file span { grid-column: 2; } }
+
+/* commit */
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.commit { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 14px; }
+.commit .rail { position: relative; display: flex; justify-content: center; }
+.commit .rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--line); }
+.commit:first-child .rail::before { top: 14px; }
+.commit:last-child .rail::before { bottom: calc(100% - 14px); }
+.commit .rail i { position: relative; margin-top: 8px; width: 14px; height: 14px; border-radius: 50%; background: var(--c); border: 3px solid var(--bg); box-sizing: content-box; }
+.commit .card { padding: 4px 0 22px; display: grid; gap: 6px; min-width: 0; }
+.commit .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; font-size: .82rem; color: var(--muted); }
+.commit .meta code { color: var(--c); font-weight: 500; }
+.commit .msg { font-weight: 600; overflow-wrap: anywhere; }
+.commit .what { font-size: .92rem; max-width: 70ch; }
+.commit .why { font-size: .88rem; color: var(--muted); max-width: 70ch; }
+.commit .why b { color: var(--ink); font-weight: 600; }
+.gtag { font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+
+/* คำถาม */
+.qa { display: grid; gap: 28px; }
+.qgroup { display: grid; gap: 8px; }
+.qgroup > h3 { display: flex; gap: 10px; align-items: center; }
+.qgroup > h3 i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--ink)); }
+details.q { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; border-left: 4px solid var(--c, var(--line)); }
+details.q summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; display: flex; gap: 12px; justify-content: space-between; align-items: baseline; }
+details.q summary::-webkit-details-marker { display: none; }
+details.q summary::after { content: "+"; color: var(--muted); font-weight: 400; font-size: 1.2rem; line-height: 1; flex: none; }
+details.q[open] summary::after { content: "−"; }
+details.q .ans { padding: 0 16px 16px; display: grid; gap: 10px; min-width: 0; }
+details.q .ans p { max-width: 70ch; }
+.qtools { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* push simulation */
 .sim { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: grid; gap: 18px; position: relative; overflow: hidden; }
@@ -142,7 +262,7 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
 .laptop.done .tick { opacity: 1; }
 .repo { border: 2px dashed var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
 .repo-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
-.repo-head code { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.repo-head code { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
 .tile {
   border-radius: 10px; padding: 8px 10px; font-size: .8rem; line-height: 1.35; min-height: 52px;
@@ -157,70 +277,67 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
 .tile.flash { transform: scale(1.06); }
 .status { font-size: .95rem; padding: 12px 14px; border-radius: 12px; background: var(--bg); min-height: 3.2em; }
 .status b { color: var(--c, var(--ink)); }
-.log { font-family: var(--font-mono); font-size: .8rem; display: grid; gap: 4px; color: var(--muted); }
-.log div { display: flex; gap: 8px; align-items: baseline; }
-.log div::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; transform: translateY(-1px); }
-.controls { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn {
-  font: inherit; font-weight: 600; border-radius: 999px; padding: 12px 22px; cursor: pointer;
-  border: 2px solid var(--ink); background: var(--ink); color: var(--bg); transition: transform .15s;
-}
-.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
-.btn:active { transform: scale(.97); }
-.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.btn:disabled { opacity: .45; cursor: default; }
-.packet {
-  position: absolute; width: 18px; height: 18px; border-radius: 6px; background: var(--c); pointer-events: none;
-  box-shadow: 0 4px 14px -2px var(--c); z-index: 2;
-}
-.order { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .9rem; color: var(--muted); }
-.order .chip { padding: 4px 12px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--c); color: var(--ink); font-weight: 600; }
-
-/* คำสั่ง */
-.cmd-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.cmd-step { display: grid; gap: 8px; }
-.cmd-step h3 { display: flex; gap: 10px; align-items: baseline; }
-.cmd-step h3 em { font-style: normal; color: var(--muted); font-weight: 400; font-size: .9rem; }
-.code { position: relative; background: var(--code-bg); color: var(--code-fg); border-radius: 14px; overflow-x: auto; }
-.code pre { margin: 0; padding: 16px 18px; padding-right: 96px; font-family: var(--font-mono); font-size: .84rem; line-height: 1.7; }
-.copy {
-  position: absolute; top: 10px; right: 10px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
-  border-radius: 999px; border: 1px solid #4a4a52; background: #2c2c33; color: #ecebe6; padding: 6px 14px;
-}
-.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.check { font-size: .92rem; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--m3) 12%, var(--surface)); }
-.check code { font-family: var(--font-mono); font-weight: 500; }
-.cmds { display: grid; gap: 18px; }
-.prep { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
-.prep ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
-.trouble { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.trouble th, .trouble td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.trouble th { color: var(--muted); font-weight: 600; }
-.trouble code { font-family: var(--font-mono); font-size: .82rem; }
-.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+.packet { position: absolute; width: 18px; height: 18px; border-radius: 6px; background: var(--c); pointer-events: none; box-shadow: 0 4px 14px -2px var(--c); z-index: 2; }
 </style>
-</head>
-<body>
 
-<header class="top wrap" style="gap:12px">
+<header class="top wrap">
   <h1>NU Activity Transcript ทีม 4 คน</h1>
-  <p class="lead">กดชื่อสมาชิกด้านล่าง ทั้งหน้าจะไฮไลต์เฉพาะส่วนของคนนั้น ว่าดูแลหน้าจอไหน ไฟล์ไหน ตอนนำเสนอต้องอธิบายอะไร และต้องกอปคำสั่งอะไรไป push</p>
+  <p class="lead">หน้านี้ไว้ทำความเข้าใจโค้ดก่อนนำเสนอ 24 ต.ค. กดชื่อสมาชิกด้านล่าง ทั้งหน้าจะเหลือแค่ส่วนของคนนั้น ว่าดูแลไฟล์ไหน ข้อมูลวิ่งผ่านโค้ดยังไง commit ไหนแก้อะไร และอาจารย์น่าจะถามอะไร โค้ดอ้างอิงจาก commit ล่าสุด <code>8ad7ebd</code></p>
 </header>
 
 <div class="wrap" style="gap:0">
   <nav class="picker" aria-label="เลือกสมาชิก">
     <button class="pick" data-pick="all" aria-pressed="true"><b><span class="dot"></span>ทั้งหมด</b><span>ดูภาพรวม</span></button>
-    <button class="pick" data-pick="1" style="--c:var(--m1)" aria-pressed="false"><b><span class="dot"></span>คนที่ 1</b><span>โครงสร้าง ฐานข้อมูล</span></button>
-    <button class="pick" data-pick="2" style="--c:var(--m2)" aria-pressed="false"><b><span class="dot"></span>คนที่ 2</b><span>QR และ GPS</span></button>
-    <button class="pick" data-pick="3" style="--c:var(--m3)" aria-pressed="false"><b><span class="dot"></span>คนที่ 3</b><span>ฝั่งผู้คุม Excel</span></button>
-    <button class="pick" data-pick="4" style="--c:var(--m4)" aria-pressed="false"><b><span class="dot"></span>คนที่ 4</b><span>ฝั่งนิสิต</span></button>
+    <button class="pick" data-pick="1" style="--c:var(--m1)" aria-pressed="false"><b><span class="dot"></span>คนที่ 1</b><span>jEmzn ฐานข้อมูล</span></button>
+    <button class="pick" data-pick="2" style="--c:var(--m2)" aria-pressed="false"><b><span class="dot"></span>คนที่ 2</b><span>ปพังกร QR GPS</span></button>
+    <button class="pick" data-pick="3" style="--c:var(--m3)" aria-pressed="false"><b><span class="dot"></span>คนที่ 3</b><span>Midnine9 ผู้คุม</span></button>
+    <button class="pick" data-pick="4" style="--c:var(--m4)" aria-pressed="false"><b><span class="dot"></span>คนที่ 4</b><span>Mark ฝั่งนิสิต</span></button>
   </nav>
 </div>
 
 <main class="wrap" style="margin-top:32px">
 
-  <section id="who-sec">
-    <div id="who"></div>
+  <section><div id="who"></div></section>
+
+  <section>
+    <div class="sec-head">
+      <h2>โค้ดแบ่งเป็น 5 ชั้น</h2>
+      <p class="lead">ทุกฟีเจอร์เดินผ่านชั้นเดียวกัน หน้าจอไม่เคยคุยกับฐานข้อมูลตรงๆ ต้องผ่าน Provider ก่อน เลือกฟีเจอร์แล้วกด "ขั้นต่อไป" ดูว่าข้อมูลวิ่งผ่านไฟล์ไหน บรรทัดไหน และทำไมเขียนแบบนั้น</p>
+    </div>
+    <div class="layers" id="layers"></div>
+    <div class="chips" id="scenarioChips"></div>
+    <div class="trace" id="trace">
+      <div class="trace-top">
+        <h3 id="traceTitle"></h3>
+        <div class="steps-dots" id="stepDots"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-where" id="stepWhere"></div>
+        <div class="code"><pre id="stepCode"></pre></div>
+        <p class="step-why" id="stepWhy"></p>
+      </div>
+      <div class="controls">
+        <button class="btn ghost" id="prevStep">ย้อน</button>
+        <button class="btn" id="nextStep">ขั้นต่อไป</button>
+      </div>
+    </div>
+  </section>
+
+  <section data-o="2" id="cheatSec">
+    <div class="sec-head">
+      <h2>ลองโกงการสแกน QR</h2>
+      <p class="lead">ติ๊กวิธีโกงแล้วดูว่า <code>ClaimService.checkAndSave</code> จับได้ที่ข้อไหน ตรวจตามลำดับ เจอข้อแรกที่ไม่ผ่านก็หยุดทันที ข้อความสีแดงคือข้อความเดียวกับที่แอพขึ้นจริง</p>
+    </div>
+    <div class="cheat">
+      <div class="cheat-grid">
+        <div class="togs" id="togs"></div>
+        <div style="display:grid;gap:12px;min-width:0;align-content:start">
+          <ol class="checks" id="checks"></ol>
+          <div class="verdict" id="verdict"></div>
+        </div>
+      </div>
+      <div class="code qrjson"><pre id="qrjson"></pre></div>
+    </div>
   </section>
 
   <section>
@@ -240,22 +357,35 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
   <section>
     <div class="sec-head">
       <h2>ไฟล์ในโฟลเดอร์ lib และ test</h2>
-      <p class="lead">จุดสีหน้าไฟล์คือเจ้าของ ไฟล์ของแต่ละคนอยู่ในโฟลเดอร์ <code>member1</code> ถึง <code>member4</code> ใน <code>NU_Activity_push_kits</code></p>
+      <p class="lead">จุดสีหน้าไฟล์คือเจ้าของ ไม่มีใครแก้ไฟล์ซ้ำกัน ทุกคนเรียกฐานข้อมูลผ่าน <code>DatabaseHelper</code> ของคนที่ 1</p>
     </div>
     <div class="tree" id="tree"></div>
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>push ขึ้น GitHub ยังไง</h2>
-      <p class="lead">กดเล่นดูว่าไฟล์ใน repo ค่อยๆ เปลี่ยนจากไฟล์ชั่วคราวเป็นของจริงยังไง คนที่ 1 ต้องขึ้นก่อน คนที่เหลือสลับกันได้ ลำดับนี้เรียงตามการใช้งานจริง</p>
+      <h2>ประวัติ commit ทั้ง 13 ครั้ง</h2>
+      <p class="lead">เรียงจากเก่าไปใหม่ ทุกครั้งมีเหตุผลว่าทำไมต้องแก้ อาจารย์ดู commit ประกอบช่องผู้แก้ไขในฟอร์ม 3 ได้ จึงควรตอบได้ว่า commit ของตัวเองเปลี่ยนอะไร</p>
     </div>
-    <div class="order">
-      ลำดับที่แนะนำ
-      <span class="chip" style="--c:var(--m1)">คนที่ 1</span>
-      <span class="chip" style="--c:var(--m4)">คนที่ 4</span>
-      <span class="chip" style="--c:var(--m3)">คนที่ 3</span>
-      <span class="chip" style="--c:var(--m2)">คนที่ 2</span>
+    <ol class="timeline" id="timeline"></ol>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>คำถามที่อาจารย์น่าจะถาม</h2>
+      <p class="lead">แยกเป็นคำถามภาพรวมที่ทุกคนต้องตอบได้ และคำถามของแต่ละคน เลือกชื่อด้านบนแล้วจะเหลือแค่คำถามภาพรวมกับของคนนั้น ลองตอบเองก่อนแล้วค่อยกดเปิดดู</p>
+    </div>
+    <div class="qtools">
+      <button class="btn ghost" id="openAll">เปิดคำตอบทั้งหมด</button>
+      <button class="btn ghost" id="closeAll">ปิดทั้งหมด</button>
+    </div>
+    <div class="qa" id="qa"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>ทำไมคนที่ 1 ต้อง push ก่อน</h2>
+      <p class="lead">คนที่ 1 วางไฟล์ชั่วคราว (skeleton) แทนหน้าจอของเพื่อนไว้ก่อน แอพจึง build ผ่านตั้งแต่ commit แรก แล้วเพื่อนค่อยเอาของจริงมาทับ ใช้ตอบคำถามว่า "แบ่งงานกันยังไงไม่ให้โค้ดชนกัน" กดเล่นดูได้</p>
     </div>
     <div class="sim" id="sim">
       <div class="sim-grid">
@@ -266,7 +396,6 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
         </div>
       </div>
       <div class="status" id="status">repo ยังว่างอยู่ กด "เล่นทั้งหมด" หรือ "ทีละขั้น"</div>
-      <div class="log" id="log"></div>
       <div class="controls">
         <button class="btn" id="play">เล่นทั้งหมด</button>
         <button class="btn ghost" id="step">ทีละขั้น</button>
@@ -274,90 +403,412 @@ body[data-sel]:not([data-sel="all"]) [data-o]:not(.on) { opacity: .22; filter: g
       </div>
     </div>
   </section>
-
-  <section>
-    <div class="sec-head">
-      <h2>คำสั่งที่ต้องกอปไปวาง</h2>
-      <p class="lead">เปิด PowerShell แล้ววางทีละก้อน เลือกคนด้านบน หรือกดปุ่มด้านล่างเพื่อสลับคำสั่ง</p>
-    </div>
-    <div class="prep">
-      <h3>ทำครั้งเดียวก่อนเริ่ม (ทุกคน)</h3>
-      <ol>
-        <li>กดรับคำเชิญเข้า repo ในอีเมลของ GitHub</li>
-        <li>เอาโฟลเดอร์ <code>NU_Activity_push_kits</code> ไปวางที่ Desktop ห้ามเปลี่ยนชื่อ</li>
-        <li>กดปุ่ม Windows พิมพ์ PowerShell แล้วกด Enter</li>
-        <li>วางคำสั่งข้างล่าง แก้ชื่อกับอีเมลเป็นของตัวเองก่อนกด Enter</li>
-      </ol>
-      <div class="code"><button class="copy" type="button">กอป</button><pre>git config --global user.name "ชื่อของเรา"
-git config --global user.email "อีเมลที่ใช้สมัคร GitHub"</pre></div>
-    </div>
-    <div class="cmd-tabs" id="cmdTabs"></div>
-    <div class="cmds" id="cmds"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><h2>ถ้าเจอข้อความพวกนี้</h2></div>
-    <div class="table-wrap">
-      <table class="trouble">
-        <thead><tr><th>ข้อความ</th><th>หมายความว่า</th><th>ทำยังไง</th></tr></thead>
-        <tbody>
-          <tr><td><code>already exists and is not an empty directory</code></td><td>เคย clone ไว้แล้ว</td><td>ไม่เป็นไร คำสั่งต่อไปทำงานต่อได้เอง</td></tr>
-          <tr><td>robocopy ขึ้นตารางตัวเลขยาว</td><td>copy เสร็จแล้ว</td><td>ปกติ ไม่ใช่ error</td></tr>
-          <tr><td><code>rejected</code> ตอน push</td><td>มีคนอื่น push ไปก่อน</td><td>รัน <code>git pull --rebase</code> แล้ว <code>git push</code> อีกรอบ</td></tr>
-          <tr><td><code>Permission denied</code> หรือ <code>403</code></td><td>ยังไม่ได้รับคำเชิญเข้า repo</td><td>กดรับคำเชิญในอีเมล แล้วลอง <code>git push</code> ใหม่</td></tr>
-          <tr><td>ไม่ขึ้น <code>No issues found!</code></td><td>มีอะไรผิด</td><td>ยังไม่ต้อง push แคปหน้าจอส่งในกลุ่ม</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
 </main>
 
 <script>
-const REPO = 'https://github.com/woramets67/NU_Activity_Transcription.git';
 const M = {
-  1: { name: 'คนที่ 1', role: 'โครงสร้างแอพ ฐานข้อมูล และระบบสมาชิก', r: 'R3 Transcript, R5 กล่องแจ้งเตือน และฐานของทุกข้อ',
-       lessons: 'บท 8 Form, บท 9 named routes, บท 10 ถึง 11 Provider, บท 13 SQLite, บท 14 skeleton',
-       folder: 'member1', test: 'validators_test.dart',
-       commit: 'Set up Flutter project: models, SQLite, login and transcript',
-       can: 'สมัคร เข้าระบบ และดู Transcript ได้ หน้าของคนอื่นยังเป็นไฟล์ชั่วคราว (skeleton แบบบทที่ 14)',
-       talk: ['DatabaseHelper สร้าง 7 ตาราง และใส่ข้อมูลตัวอย่างตอนเปิดแอพครั้งแรก',
-              'PIN ไม่ได้เก็บตรงๆ เข้ารหัส sha256 ก่อนเก็บลงฐานข้อมูล',
-              'StartScreen ใน main.dart ดูว่าเข้าระบบหรือยัง แล้วพาไปหน้าที่ถูก',
-              'วาง skeleton ของหน้าเพื่อนไว้ก่อนแบบบทที่ 14 แอพจึง build ได้ตั้งแต่ commit แรก'] },
-  2: { name: 'คนที่ 2', role: 'สแกน QR Code และตรวจ GPS', r: 'R2 ยืนยันการเข้าร่วมด้วย QR',
-       lessons: 'บท 2.2 และ 12 async/await, บท 7 setState กับ Timer, แพ็กเกจ mobile_scanner qr_flutter geolocator',
-       folder: 'member2', test: 'qr_service_test.dart',
-       commit: 'Add QR code, GPS check, scan and QR presenter screens',
+  1: { name: 'คนที่ 1', gh: 'jEmzn', role: 'โครงสร้างแอพ ฐานข้อมูล และระบบสมาชิก', r: 'R3 Transcript, R5 กล่องแจ้งเตือน และฐานของทุกข้อ',
+       lessons: 'บท 8 Form, บท 9 named routes, บท 10 ถึง 11 Provider, บท 13 SQLite',
+       test: 'validators_test.dart', commit: 'feat(core): models, sqlite, login, transcript',
+       can: 'สมัคร เข้าระบบ และดู Transcript ได้ หน้าของคนอื่นยังเป็นไฟล์ชั่วคราว',
+       talk: ['DatabaseHelper เป็น Singleton เปิดฐานข้อมูลครั้งเดียว สร้าง 7 ตารางใน onCreate',
+              'PIN ไม่ได้เก็บตรงๆ เอารหัสนิสิตกับ PIN ไป sha256 ก่อนเก็บ',
+              'StartScreen ใช้ watch ดู AuthProvider ถ้ามีนิสิตก็โชว์แถบล่าง ถ้าไม่มีก็โชว์หน้าสมัคร ไม่ต้องสั่ง Navigator',
+              'ชั่วโมงรวมใน Transcript คำนวณจากรายการทุกครั้ง ไม่ได้เก็บยอดรวม ตัวเลขจึงไม่มีวันไม่ตรง'] },
+  2: { name: 'คนที่ 2', gh: 'paphangkonp67', role: 'สแกน QR Code และตรวจ GPS', r: 'R2 ยืนยันการเข้าร่วมด้วย QR',
+       lessons: 'บท 2.2 และ 12 async/await try/catch, บท 7 setState กับ Timer, mobile_scanner qr_flutter geolocator crypto',
+       test: 'qr_service_test.dart', commit: 'Add QR code, GPS check, scan and QR presenter screens',
        can: 'ผู้คุมเปิด QR นิสิตสแกนรับชั่วโมงได้ ครบทั้งระบบ',
        talk: ['ใน QR มีลายเซ็น sha256 ถ้าใครแก้ข้อมูล ลายเซ็นจะไม่ตรง แอพจับได้',
-              'claim_service.dart ตรวจ 5 ข้อตามลำดับ ลายเซ็น อายุ 15 วินาที สแกนซ้ำ ลงทะเบียนแล้ว และระยะ 200 ม.',
-              'หน้าจอผู้คุมใช้ Timer นับถอยหลัง สร้าง QR ใหม่ทุก 10 วินาที',
-              'test พิสูจน์ว่าแก้ชั่วโมงใน QR แล้วอ่านไม่ผ่าน'] },
-  3: { name: 'คนที่ 3', role: 'จัดการกิจกรรมและส่งออกรายชื่อเป็น Excel (ฝั่งผู้คุม)', r: 'R4 จัดการรายชื่อและ Excel, R5 ส่งประกาศ',
-       lessons: 'บท 8 Form และ validator, บท 11 Provider, บท 13 SQLite, แพ็กเกจ excel share_plus',
-       folder: 'member3', test: 'excel_export_test.dart',
-       commit: 'Add supervisor screens, roster management and Excel export',
+              'claim_service ตรวจ 5 ข้อตามลำดับ ลายเซ็น อายุ 15 วินาที สแกนซ้ำ ลงทะเบียนแล้ว และระยะ 200 ม.',
+              'หน้าจอผู้คุมใช้ Timer นับถอยหลัง สร้าง QR ใหม่ทุก 10 วินาที และ cancel ใน dispose',
+              'อ่าน GPS มี timeout 15 วินาที ถ้าอ่านไม่ได้ขึ้นข้อความพร้อมปุ่มลองใหม่ ไม่หมุนค้าง'] },
+  3: { name: 'คนที่ 3', gh: 'Midnine9', role: 'จัดการกิจกรรมและส่งออกรายชื่อเป็น Excel (ฝั่งผู้คุม)', r: 'R4 จัดการรายชื่อและ Excel, R5 ส่งประกาศ',
+       lessons: 'บท 8 Form และ validator, บท 9 ส่งข้อมูลไปหน้าใหม่, บท 11 Provider, บท 13 SQLite, excel share_plus',
+       test: 'excel_export_test.dart', commit: 'Add supervisor screens, roster management and Excel export',
        can: 'ผู้คุมเข้าระบบ สร้างกิจกรรม ดูรายชื่อ ส่งประกาศ และ export Excel ได้',
        talk: ['ฟอร์มสร้างกิจกรรมมี validator ทุกช่อง และเช็คว่าเวลาจบต้องหลังเวลาเริ่ม',
-              'filteredRoster ใน supervisor_provider ค้นหาชื่อและกรองสถานะพร้อมกัน',
+              'filteredRoster เป็น getter ค้นหาชื่อและกรองสถานะพร้อมกัน คำนวณใหม่ทุกครั้งที่หน้าจอ build',
               'เพิ่มชื่อนิสิตเองได้ กรณีมือถือแบตหมด ระบบบันทึกว่า "ผู้คุมยืนยันให้"',
-              'ส่งประกาศแล้วสร้างแจ้งเตือนให้ทุกคนในรายชื่อ'] },
-  4: { name: 'คนที่ 4', role: 'แสดงและลงทะเบียนกิจกรรม (ฝั่งนิสิต)', r: 'R1 เห็นกิจกรรมและลงทะเบียนเอง',
-       lessons: 'บท 5 ถึง 6 Row Column Stack ListView, บท 10 Provider, บท 12 FutureBuilder, บท 16 widget test',
-       folder: 'member4', test: 'activity_card_test.dart',
-       commit: 'Add activity list, detail, registration and my activities',
+              'ลบรายชื่อต้องกดยืนยันก่อน และถ้า Export พังจะขึ้นข้อความ ไม่เงียบไปเฉยๆ'] },
+  4: { name: 'คนที่ 4', gh: 'woramets67 (Mark)', role: 'แสดงและลงทะเบียนกิจกรรม (ฝั่งนิสิต)', r: 'R1 เห็นกิจกรรมและลงทะเบียนเอง',
+       lessons: 'บท 5 ถึง 6 Stack ListView, บท 10 Provider, บท 12 FutureBuilder, บท 16 widget test',
+       test: 'activity_card_test.dart', commit: 'Add activity list, detail, registration and my activities',
        can: 'เห็นรายการกิจกรรม กรองประเภท ลงทะเบียน และยกเลิกได้',
-       talk: ['หน้าแรกใช้ ListView.builder กับ ActivityCard ที่เป็น Stack วางป้ายทับโปสเตอร์',
-              'ก่อนลงทะเบียนเช็คจำนวนจากฐานข้อมูลอีกครั้ง ถ้าเต็มแล้วไม่ให้ลง',
+       talk: ['หน้าแรกใช้ ListView.builder สร้างการ์ดเฉพาะที่เห็นบนจอ แถวแรกเป็นช่องค้นหากับตัวกรอง',
+              'ก่อนลงทะเบียนนับจำนวนจากฐานข้อมูลใหม่อีกครั้ง ถ้าเต็มแล้วไม่ให้ลง',
               'ยกเลิกได้เฉพาะก่อนกิจกรรมเริ่ม ที่นั่งคืนทันที',
-              'widget test เขียนแบบเดียวกับตัวอย่างในบทที่ 16'] },
+              'ActivityCard รับข้อความสถานะจากข้างนอก ไม่รู้จัก Provider จึงเขียน widget test ได้ง่าย'] },
 };
+const color = n => `var(--m${n})`;
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const hl = s => esc(s).replace(/(\/\/[^\n]*)/g, '<span class="cm">$1</span>');
 
+// ---------- ชั้นของโค้ด ----------
+const LAYERS = [
+  ['screen', 'หน้าจอ', 'แสดงผล รับการกด', 'screens/ widgets/'],
+  ['provider', 'Provider', 'เก็บ state ที่หลายหน้าใช้', 'providers/'],
+  ['service', 'Service', 'งานที่ไม่ใช่ข้อมูล QR GPS Excel', 'services/'],
+  ['helper', 'DatabaseHelper', 'ที่เดียวที่คุยกับ SQLite', 'helpers/'],
+  ['store', 'เครื่อง', 'SQLite กล้อง GPS ไฟล์', 'nuat.db'],
+];
+const layersEl = document.getElementById('layers');
+const layerEls = {};
+for (const [k, name, desc, path] of LAYERS) {
+  const el = document.createElement('div');
+  el.className = 'layer';
+  el.innerHTML = `<b>${name}</b><small>${desc}</small><code>${path}</code>`;
+  layersEl.append(el);
+  layerEls[k] = el;
+}
+
+const SCEN = [
+  { key: 'login', owner: 1, title: 'เปิดแอพและสมัครสมาชิก', steps: [
+    ['screen', 'lib/main.dart', `runApp(
+  MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => AuthProvider()..loadSavedLogin()),
+      ChangeNotifierProvider(create: (context) => ActivityProvider()),
+      // ... อีก 3 ตัว
+    ],
+    child: const MyApp(),
+  ),
+);`, 'วาง Provider ทั้ง 5 ตัวไว้บนสุดของแอพด้วย MultiProvider ทุกหน้าที่อยู่ข้างใต้จึงเรียกใช้ได้ <code>..loadSavedLogin()</code> คือ cascade สร้าง object แล้วเรียกเมธอดต่อทันที แอพจึงเริ่มเช็คว่าเคยเข้าระบบไว้หรือยังตั้งแต่เปิด'],
+    ['provider', 'lib/providers/auth_provider.dart', `final prefs = await SharedPreferences.getInstance();
+final savedId = prefs.getString('student_id');
+if (savedId != null) {
+  student = await db.getStudent(savedId);
+}
+isLoading = false;
+notifyListeners();`, 'SharedPreferences เก็บแค่รหัสนิสิตเพื่อจำว่าใครเข้าระบบอยู่ ข้อมูลจริงอยู่ใน SQLite เพราะ SharedPreferences เหมาะกับค่าเล็กๆ แบบ key กับ value ไม่เหมาะกับตาราง'],
+    ['screen', 'lib/main.dart  StartScreen', `final auth = context.watch<AuthProvider>();
+if (auth.isLoading) {
+  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+}
+if (auth.student == null) {
+  return const WelcomeScreen();
+}
+return const StudentShell();`, 'ใช้ <code>watch</code> เพราะอยากให้หน้านี้ build ใหม่ทุกครั้งที่ AuthProvider เปลี่ยน พอ <code>notifyListeners()</code> ถูกเรียก หน้าจอสลับเองโดยไม่ต้องสั่ง Navigator ข้อดีคือกดย้อนกลับแล้วไม่กลับไปหน้าเข้าระบบ'],
+    ['screen', 'lib/screens/student/welcome_screen.dart', `final _formKey = GlobalKey<FormState>();
+// ...
+Form(
+  key: _formKey,
+  autovalidateMode: AutovalidateMode.onUserInteraction,
+  // ...
+)
+// ตอนกดสมัคร
+if (!_formKey.currentState!.validate()) return;`, 'GlobalKey ใช้เรียก <code>validate()</code> ที่สั่งทุก TextFormField รัน validator พร้อมกัน <code>onUserInteraction</code> เพิ่มใน commit <code>8ad7ebd</code> เพราะเดิมข้อความแดงค้างอยู่แม้พิมพ์ถูกแล้ว'],
+    ['provider', 'lib/providers/auth_provider.dart', `String hashPin(String studentId, String pin) {
+  return sha256.convert(utf8.encode('$studentId:$pin')).toString();
+}`, 'ไม่เก็บ PIN ตรงๆ ถ้าใครเปิดไฟล์ฐานข้อมูลก็เห็นแค่ hash ใส่รหัสนิสิตไปด้วยเพื่อให้สองคนที่ใช้ PIN เดียวกันได้ hash ต่างกัน'],
+    ['helper', 'lib/helpers/database_helper.dart', `static final DatabaseHelper instance = DatabaseHelper._init();
+DatabaseHelper._init();
+
+static Database? _database;
+
+Future<Database> get database async {
+  if (_database != null) return _database!;
+  _database = await _openDB();
+  return _database!;
+}`, 'Singleton แบบบทที่ 13 constructor เป็น private ทั้งแอพจึงมี DatabaseHelper ตัวเดียว เปิดไฟล์ฐานข้อมูลครั้งแรกครั้งเดียวแล้วเก็บไว้ใน <code>_database</code>'],
+    ['store', 'nuat.db', `CREATE TABLE students (
+  student_id TEXT PRIMARY KEY,
+  name TEXT,
+  faculty TEXT,
+  pin_hash TEXT
+)`, 'รหัสนิสิตเป็น PRIMARY KEY สมัครซ้ำไม่ได้ แต่ <code>signUp</code> เช็คก่อนแล้วคืนข้อความ "รหัสนิสิตนี้มีบัญชีแล้ว" ให้ผู้ใช้อ่านเข้าใจ ไม่ปล่อยให้ SQLite โยน error'],
+  ]},
+  { key: 'register', owner: 4, title: 'นิสิตลงทะเบียนกิจกรรม', steps: [
+    ['screen', 'lib/screens/student/home_screen.dart', `ListView.builder(
+  itemCount: list.length + 1,
+  itemBuilder: (context, index) {
+    if (index == 0) {
+      return _filterRow(activityProvider);
+    }
+    final activity = list[index - 1];
+    return ActivityCard(/* ... */);
+  },
+)`, 'ListView.builder สร้างเฉพาะการ์ดที่อยู่บนจอ ถ้ากิจกรรมมี 100 อันก็ไม่สร้างทีเดียว 100 อัน ให้ index 0 เป็นช่องค้นหาเพื่อให้เลื่อนไปพร้อมรายการ <code>list</code> มาจาก getter <code>openActivities</code>'],
+    ['provider', 'lib/providers/activity_provider.dart', `List<Activity> get openActivities {
+  return activities.where((a) {
+    if (a.isPast()) return false;
+    if (!a.title.toLowerCase().contains(searchText.toLowerCase())) return false;
+    if (filter == 'ทั้งหมด') return true;
+    return a.kind == filter;
+  }).toList();
+}`, 'กรองด้วย getter ไม่เก็บรายการที่กรองแล้วไว้อีกชุด พิมพ์ค้นหาแล้ว <code>setSearchText</code> เรียก <code>notifyListeners()</code> หน้าจอ build ใหม่ getter คำนวณใหม่เอง ข้อมูลมีชุดเดียวจึงไม่มีวันไม่ตรงกัน ช่องค้นหาเพิ่มใน commit <code>161201a</code>'],
+    ['screen', 'lib/screens/student/activity_detail_screen.dart', `final activityProvider = context.read<ActivityProvider>();
+final student = context.read<AuthProvider>().student!;
+final messenger = ScaffoldMessenger.of(context);
+// ...
+final error = await activityProvider.register(activity, student);
+messenger.showSnackBar(SnackBar(content: Text(error ?? 'ลงทะเบียนสำเร็จ')));`, 'ในฟังก์ชันที่กดปุ่มใช้ <code>read</code> ไม่ใช่ <code>watch</code> เพราะแค่จะเรียกเมธอด ไม่ต้องการ rebuild และดึง ScaffoldMessenger ไว้ก่อน <code>await</code> เพราะหลัง await หน้านี้อาจถูกปิดไปแล้ว ใช้ context ต่อไม่ปลอดภัย'],
+    ['provider', 'lib/providers/activity_provider.dart', `Future<String?> register(Activity a, Student student) async {
+  final count = await db.countRegistrations(a.id);
+  if (count >= a.capacity) {
+    return 'กิจกรรมนี้เต็มแล้ว';
+  }
+  await db.insertRegistration(Registration(/* ... */));
+  await loadActivities(student.studentId);
+  return null;
+}`, 'นับจำนวนจากฐานข้อมูลใหม่ทุกครั้ง ไม่เชื่อตัวเลขที่โชว์บนจอเพราะอาจเก่า คืนค่าเป็น <code>String?</code> ถ้าเป็น null แปลว่าสำเร็จ ถ้ามีข้อความแปลว่าไม่ผ่าน หน้าจอเอาข้อความไปโชว์ได้เลย'],
+    ['helper', 'lib/helpers/database_helper.dart', `Future<void> insertRegistration(Registration r) async {
+  final db = await database;
+  await db.insert('registrations', r.toMap());
+}`, '<code>toMap()</code> แปลง object เป็น Map เพราะ sqflite รับ Map ที่ key ตรงกับชื่อคอลัมน์ ตอนอ่านกลับใช้ <code>fromMap</code>'],
+    ['store', 'nuat.db', `CREATE TABLE registrations (
+  activity_id TEXT,
+  student_id TEXT,
+  student_name TEXT,
+  faculty TEXT,
+  registered_at INTEGER,
+  PRIMARY KEY (activity_id, student_id)
+)`, 'PRIMARY KEY สองคอลัมน์ คนเดียวลงกิจกรรมเดียวกันซ้ำไม่ได้ในระดับฐานข้อมูล เวลาเก็บเป็น INTEGER (millisecondsSinceEpoch) เพราะ SQLite ไม่มีชนิด DateTime และเทียบก่อนหลังได้ง่าย'],
+    ['screen', 'lib/screens/student/activity_detail_screen.dart', `final activityProvider = context.watch<ActivityProvider>();
+// ...
+'ลงทะเบียน \${activityProvider.registeredCount[activity.id] ?? 0} จาก \${activity.capacity} คน'`, '<code>loadActivities</code> เรียก <code>notifyListeners()</code> ทุกหน้าที่ watch อยู่จึง build ใหม่ ตัวเลข 10 จาก 30 กลายเป็น 11 เอง ทั้งหน้ารายละเอียดและป้ายบนการ์ดหน้าแรก นี่คือเหตุผลที่ส่ง activityId ไปหน้ารายละเอียดแทนการส่ง Activity ทั้งก้อน'],
+  ]},
+  { key: 'qr', owner: 2, title: 'ผู้คุมเปิดจอ QR', steps: [
+    ['screen', 'lib/screens/supervisor/manage_screen.dart', `Navigator.pushNamed(context, Routes.qrPresenter, arguments: activity);`, 'Named route ส่ง Activity ไปเป็น arguments แล้ว <code>generateRoute</code> ใน routes.dart แปลงกลับด้วย <code>args as Activity</code> ส่งทั้งก้อนได้เพราะระหว่างเปิด QR ข้อมูลกิจกรรมไม่เปลี่ยน'],
+    ['screen', 'lib/screens/supervisor/qr_presenter_screen.dart', `@override
+void initState() {
+  super.initState();
+  _start();
+}
+
+Future<void> _start() async {
+  final position = await LocationService.getCurrentPosition();
+  if (!mounted) return;
+  if (position == null) {
+    setState(() => _errorText = 'กรุณาเปิด GPS และอนุญาตตำแหน่งก่อนเปิด QR');
+    return;
+  }`, 'initState เป็น async ไม่ได้ จึงแยกงานไปไว้ใน <code>_start()</code> แล้วเรียกโดยไม่ await หลังรอ GPS ต้องเช็ค <code>mounted</code> เพราะผู้คุมอาจกดออกไปก่อน ถ้า setState ตอนหน้าถูกปิดแล้วจะ error'],
+    ['service', 'lib/services/location_service.dart', `try {
+  return await Geolocator.getCurrentPosition(
+    locationSettings: const LocationSettings(timeLimit: Duration(seconds: 15)),
+  );
+} catch (e) {
+  return null;
+}`, 'เพิ่มใน commit <code>3af745e</code> เดิมไม่มี timeout ถ้า GPS อ่านไม่ได้หน้า QR จะหมุนค้างตลอด ตอนนี้รอได้ไม่เกิน 15 วินาที ถ้าพังก็คืน null แล้วหน้าจอโชว์ข้อความพร้อมปุ่มลองใหม่ (commit <code>ec1ccb0</code>)'],
+    ['store', 'GPS ของเครื่อง', `Geolocator.isLocationServiceEnabled()
+Geolocator.checkPermission()
+Geolocator.requestPermission()`, 'เช็คตามลำดับ GPS เปิดไหม แล้วแอพได้สิทธิ์หรือยัง ถ้ายังก็ขอ ถ้าถูกปฏิเสธก็คืน null ไม่ให้แอพพัง'],
+    ['service', 'lib/services/qr_service.dart', `final data = {
+  'app': 'nuat',
+  'activityId': activity.id,
+  'hours': activity.hours,
+  'kind': activity.kind,
+  'time': time,
+  'lat': lat,
+  'lng': lng,
+  'sign': _makeSign(activity.id, activity.hours, activity.kind, time, lat, lng),
+};
+return jsonEncode(data);`, 'ข้อมูลทุกอย่างที่นิสิตต้องใช้อยู่ใน QR เอง ทั้งชั่วโมง เวลาที่สร้าง และพิกัดผู้คุม เครื่องนิสิตจึงตรวจได้โดยไม่ต้องมี server <code>sign</code> คือ sha256 ของทุกช่องรวมกับรหัสลับ'],
+    ['screen', 'lib/screens/supervisor/qr_presenter_screen.dart', `_timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  if (_secondsLeft <= 1) {
+    _makeNewQr();
+  } else {
+    setState(() => _secondsLeft--);
+  }
+});`, 'Timer ทำงานทุก 1 วินาทีเพื่อเลื่อนแถบนับถอยหลัง ครบ 10 วินาทีสร้าง QR ใหม่ ใช้ setState ได้เพราะตัวเลขนี้ใช้แค่ในหน้านี้ ไม่ต้องขึ้น Provider'],
+    ['screen', 'lib/screens/supervisor/qr_presenter_screen.dart', `@override
+void dispose() {
+  _timer?.cancel();
+  super.dispose();
+}`, 'ออกจากหน้าแล้วต้องหยุด Timer ไม่งั้นมันยังเรียก setState ต่อทั้งที่หน้าไม่อยู่แล้ว เกิด error และเปลือง memory'],
+  ]},
+  { key: 'scan', owner: 2, title: 'นิสิตสแกนรับชั่วโมง', steps: [
+    ['screen', 'lib/screens/student/scan_screen.dart', `Future<void> _onDetect(BarcodeCapture capture) async {
+  if (_isChecking) return;
+  final qrText = capture.barcodes.first.rawValue;
+  if (qrText == null) return;
+
+  setState(() => _isChecking = true);
+  await _cameraController.stop();`, 'กล้องอ่าน QR ได้หลายครั้งต่อวินาที <code>_isChecking</code> กันไม่ให้ตรวจซ้อนกันหลายรอบ แล้วหยุดกล้องระหว่างตรวจ'],
+    ['service', 'lib/services/qr_service.dart', `final correctSign = _makeSign(
+  data['activityId'],
+  (data['hours'] as num).toDouble(),
+  data['kind'],
+  data['time'],
+  (data['lat'] as num).toDouble(),
+  (data['lng'] as num).toDouble(),
+);
+if (data['sign'] != correctSign) return null;`, 'ข้อ 1 เครื่องนิสิตคำนวณลายเซ็นใหม่จากข้อมูลใน QR แล้วเทียบ ถ้าใครแก้ชั่วโมงจาก 3 เป็น 100 ลายเซ็นจะไม่ตรง <code>as num</code> ใช้เพราะ JSON อาจได้ 3 เป็น int ไม่ใช่ double ทั้งหมดอยู่ใน try/catch ถ้าสแกน QR อื่นที่ไม่ใช่ JSON ก็คืน null'],
+    ['service', 'lib/services/claim_service.dart', `// 2. อายุ QR
+final age = QrService.qrAgeInSeconds(data['time']);
+if (age > kQrMaxAge) {
+  return ClaimResult(success: false, message: 'QR หมดอายุแล้ว ให้สแกนจากจอผู้คุมอีกครั้ง');
+}`, 'ข้อ 2 QR เก่ากว่า 15 วินาทีใช้ไม่ได้ กันการถ่ายรูป QR ส่งให้เพื่อนที่ไม่ได้มา ให้ 15 วินาทีทั้งที่ QR เปลี่ยนทุก 10 วินาที เผื่อเวลาสแกนและนาฬิกาสองเครื่องไม่ตรงกันนิดหน่อย'],
+    ['helper', 'lib/services/claim_service.dart', `// 3. สแกนซ้ำ
+if (await db.hasCredit(activityId, student.studentId)) { /* ... */ }
+// 4. ลงทะเบียน
+if (!await db.isRegistered(activityId, student.studentId)) { /* ... */ }`, 'ข้อ 3 และ 4 ถามฐานข้อมูล ทำก่อนเรื่อง GPS เพราะเร็วกว่า ข้อที่ถูกและเร็วตรวจก่อน ข้อที่ช้าที่สุดไว้ท้าย ถ้าไม่ผ่านตั้งแต่ต้นก็ไม่ต้องรอ GPS'],
+    ['service', 'lib/services/claim_service.dart', `// 5. ระยะ
+final position = await LocationService.getCurrentPosition();
+final distance = LocationService.distanceInMeters(
+  position.latitude, position.longitude,
+  (data['lat'] as num).toDouble(), (data['lng'] as num).toDouble(),
+);
+if (distance > kMaxDistance) { /* ... */ }`, 'ข้อ 5 เทียบพิกัดนิสิตกับพิกัดผู้คุมที่อยู่ใน QR <code>distanceBetween</code> ของ geolocator คำนวณระยะบนผิวโลกเป็นเมตร ต้องไม่เกิน 200 ม. ตัวเลขทั้งหมดอยู่ใน constants.dart แก้ที่เดียว'],
+    ['helper', 'lib/services/claim_service.dart', `await db.insertCredit(credit);
+await db.insertNotice(AppNotice(
+  title: 'ได้รับ \${hoursText(credit.hours)} \${credit.kind}',
+  // ...
+));`, 'ผ่านครบ 5 ข้อถึงบันทึกชั่วโมง และสร้างแจ้งเตือนในกล่องแจ้งเตือน ตาราง credits ก็มี PRIMARY KEY (activity_id, student_id) กันซ้ำอีกชั้น'],
+    ['provider', 'lib/screens/student/scan_screen.dart', `if (result.success) {
+  await creditProvider.loadCredits(auth.student!.studentId);
+  await noticeProvider.refresh();
+}
+navigator.pushReplacementNamed(Routes.claimResult, arguments: result);`, 'โหลด Provider ใหม่ Transcript กับตัวเลขบนไอคอนแจ้งเตือนจึงเปลี่ยนทันที ใช้ <code>pushReplacementNamed</code> ให้หน้าผลแทนที่หน้ากล้อง กดย้อนกลับแล้วไม่กลับไปที่กล้องอีก'],
+  ]},
+  { key: 'export', owner: 3, title: 'ผู้คุม Export Excel', steps: [
+    ['provider', 'lib/providers/supervisor_provider.dart', `final registrations = await db.getRegistrationsOfActivity(activityId);
+final credits = await db.getCreditsOfActivity(activityId);
+
+roster = [];
+for (final r in registrations) {
+  Credit? found;
+  for (final c in credits) {
+    if (c.studentId == r.studentId) found = c;
+  }
+  roster.add(RosterItem(r, found));
+}`, 'รวมรายชื่อผู้ลงทะเบียนกับชั่วโมงเป็น <code>RosterItem</code> แถวเดียว ถ้า credit เป็น null แปลว่ายังไม่ได้ชั่วโมง ใช้ for ธรรมดาให้อ่านง่าย'],
+    ['screen', 'lib/screens/supervisor/manage_screen.dart', `onPressed: () async {
+  try {
+    await ExcelExportService.exportAndShare(activity, supProvider.roster);
+  } catch (e) {
+    _showMessage('Export ไม่สำเร็จ ลองใหม่อีกครั้ง');
+  }
+},`, 'try/catch เพิ่มใน commit <code>3a46b66</code> เดิมถ้าสร้างไฟล์หรือแชร์ไม่ได้ ปุ่มจะเงียบไปเลย ผู้ใช้ไม่รู้ว่าพัง'],
+    ['service', 'lib/services/excel_export_service.dart', `static List<List<String>> makeRows(Activity a, List<RosterItem> roster) {
+  // ลำดับ รหัสนิสิต ชื่อ คณะ กิจกรรม ประเภท วันที่ ชั่วโมง สถานะ เวลายืนยัน ยืนยันโดย
+}`, 'แยก <code>makeRows</code> ออกจากการสร้างไฟล์ ฟังก์ชันนี้รับข้อมูลแล้วคืนตาราง ไม่แตะไฟล์หรือแชร์ จึงเขียน unit test ใน excel_export_test.dart ได้โดยไม่ต้องเปิดแอพ'],
+    ['store', 'lib/services/excel_export_service.dart', `final excel = Excel.createExcel();
+final sheet = excel[excel.getDefaultSheet()!];
+sheet.appendRow(headers.map((h) => TextCellValue(h)).toList());
+// ...
+final folder = await getTemporaryDirectory();
+final file = File('\${folder.path}/รายชื่อ_\${a.id}.xlsx');
+await file.writeAsBytes(excel.encode()!);`, 'สร้างไฟล์ .xlsx จริงด้วยแพ็กเกจ excel แล้วเขียนลงโฟลเดอร์ชั่วคราวของแอพ (path_provider) เพราะแอพเขียนไฟล์ได้เฉพาะโฟลเดอร์ของตัวเอง'],
+    ['screen', 'share_plus', `await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: a.title));`, 'เปิดหน้าแชร์ของมือถือ ผู้คุมส่งไฟล์ทาง LINE อีเมล หรือเซฟลง Drive ได้เอง ไม่ต้องเขียนระบบส่งไฟล์เอง'],
+  ]},
+];
+
+const scenChips = document.getElementById('scenarioChips');
+let scen = SCEN[0], stepI = 0;
+for (const s of SCEN) {
+  const b = document.createElement('button');
+  b.className = 'chipbtn';
+  b.dataset.o = s.owner;
+  b.style.setProperty('--c', color(s.owner));
+  b.innerHTML = `<i></i>${s.title}`;
+  b.addEventListener('click', () => { scen = s; stepI = 0; renderTrace(); });
+  s.btn = b;
+  scenChips.append(b);
+}
+function renderTrace() {
+  const c = color(scen.owner);
+  document.getElementById('trace').style.setProperty('--c', c);
+  layersEl.style.setProperty('--c', c);
+  SCEN.forEach(s => s.btn.setAttribute('aria-pressed', s === scen));
+  document.getElementById('traceTitle').textContent = `${scen.title} (${M[scen.owner].name})`;
+  const [layer, file, code, why] = scen.steps[stepI];
+  const seen = new Set(scen.steps.slice(0, stepI).map(s => s[0]));
+  for (const [k, el] of Object.entries(layerEls)) {
+    el.classList.toggle('hot', k === layer);
+    el.classList.toggle('seen', k !== layer && seen.has(k));
+  }
+  const lname = LAYERS.find(l => l[0] === layer)[1];
+  document.getElementById('stepWhere').innerHTML = `ขั้น ${stepI + 1} จาก ${scen.steps.length} ชั้น <b>${lname}</b> ไฟล์ <code>${file}</code>`;
+  document.getElementById('stepCode').innerHTML = hl(code);
+  document.getElementById('stepWhy').innerHTML = why;
+  const dots = document.getElementById('stepDots');
+  dots.innerHTML = '';
+  scen.steps.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.textContent = i + 1;
+    d.setAttribute('aria-label', `ขั้นที่ ${i + 1}`);
+    d.className = i === stepI ? 'now' : i < stepI ? 'done' : '';
+    d.addEventListener('click', () => { stepI = i; renderTrace(); });
+    dots.append(d);
+  });
+  document.getElementById('prevStep').disabled = stepI === 0;
+  const next = document.getElementById('nextStep');
+  next.textContent = stepI === scen.steps.length - 1 ? 'เริ่มใหม่' : 'ขั้นต่อไป';
+}
+document.getElementById('nextStep').addEventListener('click', () => {
+  stepI = stepI === scen.steps.length - 1 ? 0 : stepI + 1; renderTrace();
+});
+document.getElementById('prevStep').addEventListener('click', () => { if (stepI > 0) { stepI--; renderTrace(); } });
+
+// ---------- ลองโกง QR ----------
+const CHEATS = [
+  ['edit', 'แก้ชั่วโมงใน QR จาก 3 เป็น 100'],
+  ['old', 'ถ่ายรูป QR ส่งให้เพื่อน เพื่อนสแกนหลัง 20 วินาที'],
+  ['twice', 'สแกนซ้ำหลังได้ชั่วโมงไปแล้ว'],
+  ['noreg', 'ไม่ได้ลงทะเบียนกิจกรรมนี้'],
+  ['gpsoff', 'ปิด GPS ตอนสแกน'],
+  ['far', 'อยู่หอพัก ห่างผู้คุม 1.8 กม.'],
+];
+const CHECKS = [
+  ['ลายเซ็นตรงไหม', 'QrService.readQrText', c => c.edit, 'QR นี้ใช้รับชั่วโมงไม่ได้'],
+  ['อายุไม่เกิน 15 วินาที', 'qrAgeInSeconds > kQrMaxAge', c => c.old, 'QR หมดอายุแล้ว ให้สแกนจากจอผู้คุมอีกครั้ง'],
+  ['ยังไม่เคยได้ชั่วโมง', 'db.hasCredit', c => c.twice, 'คุณได้รับชั่วโมงกิจกรรมนี้ไปแล้ว'],
+  ['ลงทะเบียนแล้ว', 'db.isRegistered', c => c.noreg, 'คุณยังไม่ได้ลงทะเบียนกิจกรรมนี้ ติดต่อผู้คุมให้เพิ่มชื่อ'],
+  ['ระยะไม่เกิน 200 ม.', 'LocationService.distanceInMeters', c => c.gpsoff || c.far, null],
+];
+const cheat = {};
+const togs = document.getElementById('togs');
+for (const [k, label] of CHEATS) {
+  const l = document.createElement('label');
+  l.className = 'tog';
+  l.innerHTML = `<input type="checkbox" id="cheat-${k}"><span>${label}</span>`;
+  l.querySelector('input').addEventListener('change', e => { cheat[k] = e.target.checked; renderCheat(); });
+  togs.append(l);
+}
+function renderCheat() {
+  const list = document.getElementById('checks');
+  list.innerHTML = '';
+  let failed = -1;
+  CHECKS.forEach(([name, fn, bad], i) => {
+    const li = document.createElement('li');
+    const isBad = failed < 0 && bad(cheat);
+    if (isBad) failed = i;
+    li.className = failed >= 0 && i > failed ? 'skip' : isBad ? 'fail' : 'pass';
+    li.innerHTML = `<span class="n">${i + 1}</span><span>${name}<small><code>${fn}</code></small></span>`;
+    list.append(li);
+  });
+  const v = document.getElementById('verdict');
+  if (failed < 0) {
+    v.className = 'verdict ok';
+    v.innerHTML = 'รับชั่วโมงสำเร็จ<small>บันทึกลงตาราง credits และสร้างแจ้งเตือน "ได้รับ 3 ชม. จิตอาสา" ระยะ 40 ม.</small>';
+  } else {
+    let msg = CHECKS[failed][3];
+    if (failed === 4) msg = cheat.gpsoff ? 'กรุณาเปิด GPS และอนุญาตตำแหน่งก่อนสแกน' : 'อยู่ห่างจากผู้คุม 1779 ม. ต้องอยู่ในระยะ 200 ม.';
+    const skipped = 4 - failed;
+    v.className = 'verdict no';
+    v.innerHTML = `${msg}<small>จับได้ที่ข้อ ${failed + 1}${skipped ? ` ข้อที่เหลืออีก ${skipped} ข้อไม่ต้องตรวจ` : ''} ไม่มีอะไรถูกบันทึก</small>`;
+  }
+  const t = cheat.old ? 1761187200000 : 1761187220000;
+  const json = `{
+  "app": "nuat",
+  "activityId": "a-blood",
+  "hours": ${cheat.edit ? '<span class="bad">100</span>' : '3'},
+  "kind": "จิตอาสา",
+  "time": ${cheat.old ? '<span class="bad">' + t + '</span>' : t},
+  "lat": 16.7464,
+  "lng": 100.1953,
+  "sign": "9f2c41ab07d3...e81"${cheat.edit ? '   <span class="bad">// ลายเซ็นนี้คำนวณจาก hours = 3</span>' : ''}
+}`;
+  document.getElementById('qrjson').innerHTML = `<span class="cm">// ข้อความที่อยู่ใน QR (jsonEncode)</span>\n` + json;
+}
+
+// ---------- หน้าจอ ----------
 const SCREENS = {
   'นิสิต': [
     ['welcome', 1, 'สมัคร / เข้าระบบ', 'รหัสนิสิตกับ PIN'],
-    ['student_shell', 1, 'แถบล่าง 4 แท็บ', 'ปุ่มสแกนสีส้ม'],
-    ['home', 4, 'หน้าแรก', 'รายการกิจกรรม กรองประเภท'],
+    ['student_shell', 1, 'แถบล่าง 4 แท็บ', 'ปุ่มสแกนสีส้ม IndexedStack'],
+    ['home', 4, 'หน้าแรก', 'ค้นหา กรองประเภท'],
     ['activity_detail', 4, 'รายละเอียดกิจกรรม', 'ลงทะเบียน ยกเลิก ดูประกาศ'],
     ['mine', 4, 'กิจกรรมของฉัน', 'กำลังจะถึง ที่ผ่านมา'],
     ['scan', 2, 'สแกน QR', 'เปิดกล้อง ตรวจ GPS'],
@@ -366,34 +817,13 @@ const SCREENS = {
     ['profile', 1, 'Transcript', 'ชั่วโมงสะสมแยกประเภท'],
   ],
   'ผู้คุม': [
-    ['sup_login', 3, 'เข้าโหมดผู้คุม', 'รหัสหน่วยงาน'],
+    ['sup_login', 3, 'เข้าโหมดผู้คุม', 'รหัสหน่วยงาน NUVOL26'],
     ['sup_home', 3, 'กิจกรรมของหน่วยงาน', 'กำลังจัด จะมาถึง จบแล้ว'],
     ['activity_editor', 3, 'สร้าง / แก้ไขกิจกรรม', 'ฟอร์มพร้อม validator'],
     ['manage', 3, 'จัดการกิจกรรม', 'รายชื่อ ประกาศ Excel'],
-    ['qr_presenter', 2, 'จอ QR', 'เปลี่ยนทุก 10 วินาที'],
+    ['qr_presenter', 2, 'จอ QR', 'เปลี่ยนทุก 10 วินาที ปุ่มลองใหม่'],
   ],
 };
-
-const TREE = [
-  ['lib', [
-    ['main.dart', 1, 'จุดเริ่มแอพ MultiProvider'],
-    ['app', [['routes.dart', 1, 'ชื่อหน้าทั้งหมด onGenerateRoute'], ['theme.dart', 1, 'สีและฟอนต์']]],
-    ['models', [['activity.dart  student.dart  registration.dart', 1, 'class ข้อมูล toMap fromMap'], ['credit.dart  announcement.dart  app_notice.dart  claim_result.dart', 1, 'class ข้อมูลที่เหลือ']]],
-    ['helpers', [['database_helper.dart', 1, 'SQLite ทุกตาราง ทุกคนเรียกผ่าน Provider'], ['seed_data.dart', 1, 'กิจกรรมและนิสิตตัวอย่าง']]],
-    ['utils', [['constants.dart', 1, 'ค่าคงที่ ระยะ 200 ม. อายุ QR 15 วิ'], ['thai_date.dart', 1, 'วันที่ พ.ศ.'], ['validators.dart', 1, 'ตรวจรหัสนิสิต PIN']]],
-    ['providers', [['auth_provider.dart', 1, 'เข้าระบบ ออกระบบ โหมดผู้คุม'], ['credit_provider.dart', 1, 'ชั่วโมงสะสม'], ['notice_provider.dart', 1, 'แจ้งเตือน'], ['activity_provider.dart', 4, 'กิจกรรม ลงทะเบียน ยกเลิก'], ['supervisor_provider.dart', 3, 'รายชื่อ ค้นหา ประกาศ']]],
-    ['services', [['qr_service.dart', 2, 'สร้างและอ่าน QR'], ['location_service.dart', 2, 'อ่าน GPS'], ['claim_service.dart', 2, 'ตรวจ 5 ข้อแล้วบันทึกชั่วโมง'], ['excel_export_service.dart', 3, 'สร้างไฟล์ .xlsx แล้วแชร์']]],
-    ['widgets', [['activity_card.dart', 4, 'การ์ดกิจกรรม']]],
-    ['screens/student', [['welcome  student_shell  inbox  profile', 1, '4 หน้า'], ['home  activity_detail  mine', 4, '3 หน้า'], ['scan  claim_result', 2, '2 หน้า']]],
-    ['screens/supervisor', [['sup_login  sup_home  activity_editor  manage', 3, '4 หน้า'], ['qr_presenter', 2, '1 หน้า']]],
-  ]],
-  ['test', [['validators_test.dart', 1, 'unit test'], ['qr_service_test.dart', 2, 'unit test'], ['excel_export_test.dart', 3, 'unit test'], ['activity_card_test.dart', 4, 'widget test แบบบทที่ 16']]],
-  ['pubspec.yaml  android/  ios/  assets/', 1, 'ตั้งค่าโปรเจค สิทธิ์กล้องกับ GPS รูปโปสเตอร์'],
-];
-
-const color = n => `var(--m${n})`;
-
-// ---------- หน้าจอ ----------
 const lanes = document.getElementById('lanes');
 for (const [title, list] of Object.entries(SCREENS)) {
   const lane = document.createElement('div');
@@ -412,6 +842,22 @@ for (const [title, list] of Object.entries(SCREENS)) {
 }
 
 // ---------- ไฟล์ ----------
+const TREE = [
+  ['lib', [
+    ['main.dart', 1, 'จุดเริ่มแอพ MultiProvider และ StartScreen'],
+    ['app', [['routes.dart', 1, 'ชื่อหน้าทั้งหมด onGenerateRoute'], ['theme.dart', 1, 'สีและฟอนต์']]],
+    ['models', [['activity.dart  student.dart  registration.dart', 1, 'class ข้อมูล toMap fromMap'], ['credit.dart  announcement.dart  app_notice.dart  claim_result.dart', 1, 'class ข้อมูลที่เหลือ']]],
+    ['helpers', [['database_helper.dart', 1, 'Singleton SQLite 7 ตาราง'], ['seed_data.dart', 1, 'กิจกรรม หน่วยงาน และรายชื่อตัวอย่าง']]],
+    ['utils', [['constants.dart', 1, 'ระยะ 200 ม. อายุ QR 15 วิ เปลี่ยนทุก 10 วิ'], ['thai_date.dart', 1, 'วันที่ พ.ศ.'], ['validators.dart', 1, 'ตรวจรหัสนิสิต 8 หลัก PIN 6 หลัก']]],
+    ['providers', [['auth_provider.dart', 1, 'เข้าระบบ ออกระบบ โหมดผู้คุม'], ['credit_provider.dart', 1, 'ชั่วโมงสะสม'], ['notice_provider.dart', 1, 'แจ้งเตือน'], ['activity_provider.dart', 4, 'กิจกรรม ค้นหา ลงทะเบียน ยกเลิก'], ['supervisor_provider.dart', 3, 'รายชื่อ ค้นหา ให้ชั่วโมง ประกาศ']]],
+    ['services', [['qr_service.dart', 2, 'สร้างและอ่าน QR พร้อมลายเซ็น'], ['location_service.dart', 2, 'อ่าน GPS timeout 15 วิ'], ['claim_service.dart', 2, 'ตรวจ 5 ข้อแล้วบันทึกชั่วโมง'], ['excel_export_service.dart', 3, 'สร้างไฟล์ .xlsx แล้วแชร์']]],
+    ['widgets', [['activity_card.dart', 4, 'การ์ดกิจกรรม Stack ป้ายทับโปสเตอร์']]],
+    ['screens/student', [['welcome  student_shell  inbox  profile', 1, '4 หน้า'], ['home  activity_detail  mine', 4, '3 หน้า'], ['scan  claim_result', 2, '2 หน้า']]],
+    ['screens/supervisor', [['sup_login  sup_home  activity_editor  manage', 3, '4 หน้า'], ['qr_presenter', 2, '1 หน้า']]],
+  ]],
+  ['test', [['validators_test.dart', 1, 'unit test'], ['qr_service_test.dart', 2, 'unit test 4 ข้อ'], ['excel_export_test.dart', 3, 'unit test'], ['activity_card_test.dart', 4, 'widget test']]],
+  ['pubspec.yaml  android/  ios/  assets/', 1, 'แพ็กเกจ สิทธิ์กล้องกับ GPS รูปโปสเตอร์'],
+];
 function buildTree(items) {
   const ul = document.createElement('ul');
   for (const item of items) {
@@ -432,27 +878,134 @@ function buildTree(items) {
 }
 document.getElementById('tree').append(buildTree(TREE));
 
+// ---------- commit ----------
+const COMMITS = [
+  ['8c0287c', 1, 'jEmzn', '20 ต.ค.', 'init flutter app', 'สร้างโปรเจคเปล่าด้วย flutter create', 'จุดเริ่มของ repo', 'เริ่ม'],
+  ['3264114', 1, 'jEmzn', '20 ต.ค.', 'feat(core): models, sqlite, login, transcript', 'models 7 ตัว DatabaseHelper 7 ตาราง Provider 3 ตัว หน้าสมัคร แถบล่าง Transcript แจ้งเตือน และไฟล์ชั่วคราวแทนหน้าของเพื่อน', 'ทุกคนต้องใช้ฐานข้อมูลกับ model ชุดนี้ จึงต้องขึ้นก่อน ไฟล์ชั่วคราวทำให้แอพ build ผ่านตั้งแต่แรก', 'ฟีเจอร์'],
+  ['0cd5b09', 1, 'jEmzn', '20 ต.ค.', 'chore: remove unuse web platform', 'ลบโฟลเดอร์ web', 'แอพใช้กล้อง GPS และ sqflite ซึ่งเป็นของมือถือ เว็บไม่ได้ใช้', 'เก็บกวาด'],
+  ['05dcca9', 1, 'jEmzn', '20 ต.ค.', 'chore: remove default counter test', 'ลบ widget_test.dart ที่ flutter create ใส่มา', 'test เดิมทดสอบแอพนับเลข ซึ่งไม่มีแล้ว ปล่อยไว้ flutter test จะล้ม', 'เก็บกวาด'],
+  ['0d9f8b3', 2, 'paphangkonp67', '20 ต.ค.', 'Add QR code, GPS check, scan and QR presenter screens', 'qr_service location_service claim_service หน้าสแกน หน้าผล และจอ QR ผู้คุม พร้อม qr_service_test', 'ระบบยืนยันการเข้าร่วม R2 ครบทั้งฝั่งผู้คุมและนิสิต', 'ฟีเจอร์'],
+  ['e256c7c', 4, 'Mark', '21 ต.ค.', 'Add activity list, detail, registration and my activities', 'activity_provider หน้าแรก รายละเอียด กิจกรรมของฉัน ActivityCard และ widget test', 'R1 นิสิตเห็นกิจกรรมและลงทะเบียนเอง แทนการดูโพสต์ Facebook', 'ฟีเจอร์'],
+  ['8101f57', 3, 'Midnine9', '21 ต.ค.', 'Add supervisor screens, roster management and Excel export', 'supervisor_provider หน้าเข้าโหมดผู้คุม รายการกิจกรรม ฟอร์มสร้างกิจกรรม จัดการรายชื่อ และ Export Excel', 'R4 และ R5 ผู้คุมไม่ต้องคีย์รายชื่อเอง', 'ฟีเจอร์'],
+  ['3af745e', 2, 'Mark กับ paphangkonp67', '21 ต.ค.', 'fix: GPS timeout and shorter comments in QR/scan', 'ใส่ timeLimit 15 วินาทีและ try/catch ใน location_service ตัดคอมเมนต์ที่ยาวเกิน', 'ทดสอบบน emulator แล้วหน้า QR หมุนค้างเมื่อ GPS อ่านไม่ได้ ฟอร์ม 3 หักคะแนนถ้าแอพค้างโดยไม่แจ้งผู้ใช้', 'แก้บั๊ก'],
+  ['ec1ccb0', 2, 'paphangkonp67', '21 ต.ค.', 'Add retry button when GPS fails on QR screen', 'ปุ่ม "ลองใหม่" ใต้ข้อความ error บนจอ QR ผู้คุม กดแล้วล้าง error แล้วเรียก _start() ใหม่', 'เดิมต้องออกจากหน้าแล้วเข้าใหม่ถึงจะลองอ่าน GPS อีกรอบ', 'ฟีเจอร์'],
+  ['6ee652f', 2, 'paphangkonp67', '21 ต.ค.', 'Fix missing if', 'เติมคำว่า if ที่หายไปใน _qrArea()', 'commit ก่อนหน้าเขียน (_errorText != null) โดยไม่มี if ทำให้ build ไม่ผ่าน', 'แก้บั๊ก'],
+  ['161201a', 4, 'Mark', '21 ต.ค.', 'Add activity search on home screen, shorten README and comments', 'ช่องค้นหาชื่อกิจกรรมบนหน้าแรก (searchText ใน activity_provider) README เหลือรายการฟีเจอร์ 7 ข้อ', 'กิจกรรมเยอะแล้วหายาก ค้นหาใช้แค่ TextField กับ where ที่เรียนมา', 'ฟีเจอร์'],
+  ['3a46b66', 3, 'Midnine9', '21 ต.ค.', 'Confirm before removing student and show error when export fails', 'ลบชื่อออกจากรายชื่อต้องผ่าน AlertDialog ก่อน Export ใส่ try/catch แล้วขึ้น SnackBar', 'ลบผิดคนแล้วชั่วโมงหายด้วย และเดิม Export พังแล้วเงียบ', 'แก้บั๊ก'],
+  ['8ad7ebd', 1, 'jEmzn กับ woramets67', '21 ต.ค.', 'Clear form errors while typing, remove unused MainActivity', 'autovalidateMode onUserInteraction ในฟอร์มสมัคร ลบ MainActivity ค้างจาก init ตัดคอมเมนต์ 22 ไฟล์', 'ข้อความ error ค้างทั้งที่พิมพ์ถูกแล้ว และ MainActivity เดิมอยู่ผิด package (แอพใช้ th.ac.nu) commit นี้คือที่ส่งในฟอร์ม 3 และ Release v1.0', 'แก้บั๊ก'],
+];
+const tl = document.getElementById('timeline');
+for (const [hash, owner, who, date, msg, what, why, tag] of COMMITS) {
+  const li = document.createElement('li');
+  li.className = 'commit';
+  li.dataset.o = owner;
+  li.style.setProperty('--c', color(owner));
+  li.innerHTML = `<div class="rail"><i></i></div><div class="card">
+    <div class="meta"><code>${hash}</code><span>${who}</span><span>${date}</span><span class="gtag">${tag}</span></div>
+    <div class="msg">${esc(msg)}</div>
+    <div class="what">${what}</div>
+    <div class="why"><b>ทำไม</b> ${why}</div></div>`;
+  tl.append(li);
+}
+
+// ---------- คำถาม ----------
+const QA = [
+  { owner: 0, title: 'ภาพรวม ทุกคนต้องตอบได้', items: [
+    ['ทำไมแบ่งโค้ดเป็น screens providers services helpers models', 'แต่ละโฟลเดอร์มีหน้าที่เดียว หน้าจอแสดงผลอย่างเดียว Provider ถือข้อมูลที่หลายหน้าใช้ร่วมกัน DatabaseHelper เป็นที่เดียวที่คุยกับ SQLite services เป็นงานที่ไม่ใช่ข้อมูล เช่น QR GPS Excel ข้อดีคือ 4 คนทำงานพร้อมกันได้โดยไม่แก้ไฟล์เดียวกัน และ test ส่วนที่เป็น logic ได้โดยไม่ต้องเปิดหน้าจอ เช่น qr_service_test'],
+    ['ทำไมใช้ Provider ไม่ใช้ setState อย่างเดียว', 'ข้อมูลบางอย่างใช้หลายหน้า เช่นสแกนรับชั่วโมงแล้ว Transcript ต้องเปลี่ยน ป้ายบนการ์ดหน้าแรกต้องเป็น "ได้รับชั่วโมงแล้ว" และไอคอนแจ้งเตือนต้องขึ้นเลข 1 ถ้าใช้ setState ต้องส่งข้อมูลต่อกันหลายชั้น Provider ให้ทุกหน้าฟังข้อมูลชุดเดียวกัน ส่วน setState ยังใช้กับของที่อยู่ในหน้าเดียว เช่น วินาทีนับถอยหลังของ QR แท็บที่เลือก และ _isChecking ตอนสแกน'],
+    ['context.watch กับ context.read ต่างกันยังไง ใช้ตรงไหน', 'watch ใช้ใน build เมื่ออยากให้หน้านั้น build ใหม่ตอนข้อมูลเปลี่ยน เช่น StartScreen ที่ watch AuthProvider read ใช้ในฟังก์ชันที่กดปุ่มหรือใน initState เพราะแค่เรียกเมธอด ไม่ต้องการ rebuild ถ้าใช้ watch นอก build Flutter จะเตือน'],
+    ['ทำไมใช้ SQLite ไม่ใช้ Firebase', 'ขอบเขตงานที่ตกลงไว้คือ SQLite อย่างเดียว ไม่ต้องมีคีย์ API ใน repo ซึ่ง repo เป็น public และใช้ได้แม้ไม่มีเน็ต ข้อจำกัดที่ยอมรับคือข้อมูลอยู่แยกแต่ละเครื่อง ประกาศและรายชื่อจึงข้ามเครื่องได้บางส่วน ระบุไว้ในฟอร์ม 3 แล้ว ถ้าพัฒนาต่อใช้จริงจะย้ายไป Firestore'],
+    ['ข้อมูลแยกเครื่อง แล้ว QR ข้ามเครื่องได้ยังไง', 'เครื่องผู้คุมใส่ทุกอย่างที่ต้องใช้ไว้ใน QR เลย ทั้งชั่วโมง เวลาที่สร้าง พิกัดผู้คุม และลายเซ็น เครื่องนิสิตอ่าน QR แล้วตรวจเองได้ทั้งหมด ไม่ต้องถาม server ที่ต้องมีในเครื่องนิสิตคือกิจกรรมกับการลงทะเบียน ซึ่ง seed_data ใส่ไว้ตรงกันทุกเครื่อง'],
+    ['DatabaseHelper ทำไมเป็น Singleton', 'constructor เป็น private (_init) และมี static instance ตัวเดียว ทั้งแอพจึงใช้ object เดียวกัน เปิดไฟล์ฐานข้อมูลครั้งเดียวแล้วเก็บไว้ใน _database ถ้าแต่ละ Provider สร้าง DatabaseHelper เองจะเปิดไฟล์ซ้ำหลายรอบ'],
+    ['ทำไมใช้ named routes กับ onGenerateRoute', 'ชื่อหน้าอยู่ใน class Routes ที่เดียว พิมพ์ผิดแล้ว analyzer จับได้ และ onGenerateRoute ส่ง arguments ไปหน้าใหม่ได้ เช่น activityId ไปหน้ารายละเอียด ถ้าไม่เจอชื่อหน้าก็มีหน้า "ไม่พบหน้า" แทนการแอพพัง'],
+    ['ทำไมเรียกโหลดข้อมูลใน initState ผ่าน Future.microtask', 'ใน initState ใช้ context.read ได้ แต่ถ้า Provider เรียก notifyListeners ระหว่างที่หน้ากำลัง build เฟรมแรก Flutter จะ error microtask เลื่อนงานไปทำหลัง build เสร็จ'],
+    ['ทำไมเช็ค if (!mounted) return หลัง await', 'ระหว่างรอ GPS หรือฐานข้อมูล ผู้ใช้อาจกดออกจากหน้านั้นไปแล้ว ถ้าเรียก setState หรือใช้ context ต่อจะ error mounted บอกว่าหน้ายังอยู่ไหม'],
+    ['ทำไม StudentShell ใช้ IndexedStack', 'IndexedStack สร้างทั้ง 4 แท็บไว้แล้วโชว์ทีละแท็บ สลับแท็บแล้วกลับมา คำที่พิมพ์ค้นหาและตำแหน่งที่เลื่อนไว้ยังอยู่ ไม่ต้องโหลดใหม่'],
+    ['ถ้าให้ทำต่อ อะไรคือสิ่งที่ต้องแก้ก่อนใช้จริง', 'ย้ายข้อมูลขึ้นคลาวด์ให้ประกาศและรายชื่อข้ามเครื่องได้ครบ ย้ายการตรวจลายเซ็นไปทำที่ server เพราะตอนนี้ kQrSecret ฝังอยู่ในแอพ ใครแกะแอพได้ก็ปลอม QR ได้ และให้ผู้คุมเข้าระบบด้วยบัญชีจริงแทนรหัสหน่วยงาน'],
+  ]},
+  { owner: 1, title: 'คนที่ 1 ฐานข้อมูลและสมาชิก', items: [
+    ['ฐานข้อมูลมีกี่ตาราง อะไรบ้าง', '7 ตาราง students orgs activities registrations credits announcements notices สร้างใน _createDB ซึ่ง sqflite เรียกให้แค่ครั้งแรกที่ยังไม่มีไฟล์ แล้วใส่หน่วยงาน กิจกรรม และรายชื่อตัวอย่างจาก seed_data'],
+    ['ทำไม registrations กับ credits ใช้ PRIMARY KEY สองคอลัมน์', 'PRIMARY KEY (activity_id, student_id) แปลว่าคู่นี้ซ้ำไม่ได้ คนเดียวลงกิจกรรมเดียวซ้ำไม่ได้ และได้ชั่วโมงกิจกรรมเดียวซ้ำไม่ได้ กันไว้ที่ฐานข้อมูลอีกชั้นนอกจากโค้ดที่เช็คก่อน'],
+    ['ทำไมเก็บชื่อนิสิตซ้ำใน registrations ทั้งที่มีตาราง students', 'เพราะข้อมูลแยกเครื่อง ผู้คุมเพิ่มชื่อนิสิตที่ไม่มีบัญชีในเครื่องผู้คุมได้ (กรณีแบตหมด) ถ้าเก็บแค่รหัสแล้วไป join กับ students จะไม่เจอชื่อ credits ก็เก็บชื่อกิจกรรมไว้ด้วยเหตุผลเดียวกัน Transcript จึงแสดงได้เสมอ'],
+    ['เก็บวันเวลายังไง', 'เก็บเป็น INTEGER จาก millisecondsSinceEpoch เพราะ SQLite ไม่มีชนิด DateTime ตอนอ่านกลับใช้ DateTime.fromMillisecondsSinceEpoch ตัวเลขเทียบก่อนหลังได้ตรงๆ'],
+    ['PIN เก็บยังไง ปลอดภัยแค่ไหน', 'เก็บ sha256 ของ "รหัสนิสิต:PIN" ไม่เก็บ PIN ตรงๆ ตอนเข้าระบบเอา PIN ที่พิมพ์ไป hash แล้วเทียบ ใส่รหัสนิสิตไปด้วยเพื่อให้ PIN เดียวกันของสองคนได้ hash ต่างกัน สำหรับใช้จริงควรใช้ระบบเข้าสู่ระบบของมหาวิทยาลัย'],
+    ['SharedPreferences ใช้ทำอะไร ทำไมไม่เก็บใน SQLite', 'เก็บแค่ student_id กับรหัสหน่วยงานของผู้คุม ไว้จำว่าใครเข้าระบบอยู่ตอนเปิดแอพใหม่ เป็นค่าเดี่ยวแบบ key value เหมาะกับ SharedPreferences ส่วนข้อมูลเป็นตารางเก็บใน SQLite'],
+    ['ชั่วโมงรวมใน Transcript คำนวณยังไง', 'CreditProvider โหลดรายการ credits ของนิสิตแล้ว totalHours กับ hoursOfKind บวกจากรายการทุกครั้ง ไม่เก็บยอดรวมในฐานข้อมูล ถ้าผู้คุมยกเลิกชั่วโมง ยอดรวมก็ถูกเองโดยไม่ต้องไปแก้อีกที่'],
+    ['_moveDemoActivity คืออะไร', 'onOpen ของฐานข้อมูลเลื่อนเวลากิจกรรมสาธิตให้เริ่มเมื่อ 1 ชั่วโมงก่อนและจบอีก 4 ชั่วโมง ทุกครั้งที่เปิดแอพ วันนำเสนอจึงมีกิจกรรมที่กำลังจัดอยู่ให้สาธิตสแกน QR ได้เสมอ'],
+    ['commit 8ad7ebd แก้อะไร', 'ใส่ autovalidateMode: AutovalidateMode.onUserInteraction ในฟอร์มสมัคร เดิมกดสมัครแล้วข้อความแดงค้างแม้พิมพ์ถูกแล้ว และลบ MainActivity ที่ค้างจาก flutter create เพราะอยู่ใน package เก่า ไม่ใช่ th.ac.nu'],
+  ]},
+  { owner: 2, title: 'คนที่ 2 QR และ GPS', items: [
+    ['ลายเซ็นใน QR ทำงานยังไง', 'เอาทุกช่องมาต่อกันพร้อมรหัสลับ kQrSecret แล้ว sha256 ได้ sign เครื่องนิสิตคำนวณ sign ใหม่จากข้อมูลที่อ่านได้ ถ้าไม่ตรงแปลว่ามีคนแก้ เพราะคนแก้ไม่รู้รหัสลับจึงสร้าง sign ใหม่ให้ตรงไม่ได้'],
+    ['รหัสลับอยู่ในแอพ แบบนี้ปลอดภัยไหม', 'พอสำหรับต้นแบบ กันคนทั่วไปแก้ QR ได้ แต่คนที่แกะไฟล์แอพจะเห็น kQrSecret ในโค้ดจึงเขียนคอมเมนต์ไว้ว่าใช้ได้แค่ต้นแบบ ของจริงต้องให้ server เป็นคนสร้างและตรวจลายเซ็น'],
+    ['ทำไม QR เปลี่ยนทุก 10 วินาทีแต่ใช้ได้ 15 วินาที', 'QR ที่เปลี่ยนเร็วกันการถ่ายรูปส่งให้เพื่อนที่ไม่ได้มา ให้อายุเกิน 10 วินาทีอีก 5 วินาทีเผื่อสแกนตอน QR ใกล้เปลี่ยน และนาฬิกาของสองเครื่องอาจไม่ตรงกันเล็กน้อย'],
+    ['ทำไมตรวจตามลำดับนี้', 'ลายเซ็นกับอายุตรวจจากข้อมูลใน QR ได้ทันที สแกนซ้ำกับลงทะเบียนถามฐานข้อมูลในเครื่อง ส่วน GPS ช้าที่สุดเลยไว้ท้าย ถ้าไม่ผ่านข้อต้นๆ ก็ไม่ต้องรอ GPS และแต่ละข้อคืนข้อความต่างกัน ผู้ใช้รู้ว่าต้องแก้อะไร'],
+    ['คำนวณระยะ 200 เมตรยังไง', 'พิกัดผู้คุมอยู่ใน QR พิกัดนิสิตอ่านตอนสแกน แล้วใช้ Geolocator.distanceBetween คำนวณระยะบนผิวโลกเป็นเมตร ถ้าเกิน kMaxDistance ไม่ให้ชั่วโมง'],
+    ['ทำไมใช้ Timer.periodic และต้อง cancel', 'Timer ทุก 1 วินาทีเลื่อนแถบนับถอยหลังด้วย setState ครบ 10 วินาทีสร้าง QR ใหม่ ต้อง cancel ใน dispose ไม่งั้น Timer ยังทำงานหลังออกจากหน้า เรียก setState กับหน้าที่ไม่อยู่แล้ว'],
+    ['ทำไมอ่าน GPS ต้องมี timeout และ try/catch (3af745e)', 'ทดสอบเจอว่าถ้า GPS อ่านไม่ได้ getCurrentPosition รอไม่จบ หน้า QR หมุนค้าง ตอนนี้รอไม่เกิน 15 วินาที ถ้าพังคืน null แล้วหน้าจอบอกให้เปิด GPS พร้อมปุ่มลองใหม่ (ec1ccb0)'],
+    ['หน้าสแกนกันการตรวจซ้อนยังไง', 'กล้องอ่าน QR เดิมได้หลายเฟรมต่อวินาที _isChecking เป็น true ตั้งแต่เจอ QR แรก onDetect ครั้งต่อไปจะ return ทันที แล้วหยุดกล้องด้วย _cameraController.stop()'],
+    ['ทำไมไปหน้าผลด้วย pushReplacementNamed', 'ให้หน้าผลแทนที่หน้ากล้อง กดย้อนกลับแล้วกลับไปหน้าหลัก ไม่ใช่กลับไปที่กล้องซึ่งหยุดไปแล้ว'],
+    ['test ของคุณทดสอบอะไร', 'qr_service_test 4 ข้อ QR ที่สร้างอ่านกลับได้ แก้ชั่วโมงเป็น 100 แล้วอ่านไม่ผ่าน ข้อความที่ไม่ใช่ QR ของแอพอ่านไม่ผ่าน และ QR ที่สร้างเมื่อ 20 วินาทีก่อนมีอายุ 20 วินาที'],
+  ]},
+  { owner: 3, title: 'คนที่ 3 ผู้คุมและ Excel', items: [
+    ['ฟอร์มสร้างกิจกรรมตรวจอะไรบ้าง', 'ใช้ Form กับ GlobalKey<FormState> ทุกช่องมี validator เช่น validateRequired validatePositiveNumber สำหรับชั่วโมงและจำนวนคน ตอนกดบันทึกเรียก validate() ก่อน แล้วเช็คเพิ่มว่าเวลาจบต้องหลังเวลาเริ่ม'],
+    ['ผู้คุมเข้าระบบยังไง ทำไมไม่มีรหัสผ่าน', 'กรอกชื่อกับรหัสหน่วยงาน เช่น NUVOL26 ระบบหาในตาราง orgs ถ้าเจอก็เข้าโหมดผู้คุมของหน่วยงานนั้น เป็นวิธีที่ง่ายพอสำหรับต้นแบบ ของจริงต้องใช้บัญชีผู้คุมที่ศูนย์จิตอาสาออกให้'],
+    ['RosterItem คืออะไร', 'class เล็กที่รวม Registration กับ Credit ของนิสิตคนเดียวไว้ด้วยกัน ถ้า credit เป็น null แปลว่ายังไม่ได้ชั่วโมง หน้าจอและ Excel ใช้ข้อมูลชุดเดียวกันนี้'],
+    ['ค้นหาและกรองรายชื่อทำงานยังไง', 'filteredRoster เป็น getter เช็คว่าชื่อหรือรหัสมีคำที่ค้นหา แล้วกรองตามสถานะ ทั้งหมด ได้ชั่วโมงแล้ว ยังไม่ได้ คำนวณใหม่ทุกครั้งที่หน้าจอ build ไม่ต้องเก็บรายการที่กรองแล้วแยกไว้'],
+    ['ถ้ามือถือนิสิตแบตหมดทำยังไง', 'ผู้คุมกดเพิ่มชื่อเองได้ addStudentManually บันทึกทั้งการลงทะเบียนและชั่วโมง method เป็น "ผู้คุมยืนยันให้" ใน Excel จึงแยกได้ว่าคนไหนสแกนเอง คนไหนผู้คุมให้'],
+    ['ทำไมแยก makeRows ออกจาก exportAndShare', 'makeRows รับข้อมูลแล้วคืนตาราง ไม่สร้างไฟล์ ไม่แชร์ จึง unit test ได้ว่าคอลัมน์และสถานะถูกต้อง ส่วน exportAndShare ใช้ path_provider กับ share_plus ซึ่งต้องรันบนเครื่องจริง'],
+    ['commit 3a46b66 แก้อะไร', 'ลบชื่อออกจากรายชื่อต้องผ่าน AlertDialog ก่อน showDialog<bool> คืน true ถ้ากดลบ เพราะลบแล้วชั่วโมงหายด้วย และ Export ใส่ try/catch ขึ้น SnackBar "Export ไม่สำเร็จ ลองใหม่อีกครั้ง" เดิมพังแล้วเงียบ'],
+    ['ส่งประกาศแล้วนิสิตรู้ได้ยังไง', 'postAnnouncement บันทึกประกาศ แล้วสร้าง notice ให้ทุกคนในรายชื่อ นิสิตเห็นในกล่องแจ้งเตือนกับหน้ารายละเอียดกิจกรรม ข้อจำกัดคือได้เฉพาะในเครื่องเดียวกันเพราะใช้ SQLite'],
+  ]},
+  { owner: 4, title: 'คนที่ 4 ฝั่งนิสิต', items: [
+    ['ทำไมใช้ ListView.builder', 'สร้างเฉพาะการ์ดที่อยู่บนจอ กิจกรรมเยอะแค่ไหนก็ไม่ช้า ให้ index 0 เป็นช่องค้นหาและตัวกรอง จึงเลื่อนไปพร้อมรายการ itemCount จึงเป็น list.length + 1'],
+    ['ค้นหาและกรองประเภททำยังไง (161201a)', 'TextField onChanged เรียก setSearchText ChoiceChip เรียก setFilter ทั้งคู่ notifyListeners getter openActivities กรองกิจกรรมที่จบแล้วออก แล้วกรองชื่อด้วย contains กับ toLowerCase และกรองประเภท'],
+    ['ทำไมนับที่นั่งใหม่ตอนกดลงทะเบียน', 'ตัวเลขบนจอโหลดไว้ตอนเปิดหน้า อาจเก่าแล้ว register จึงนับจากฐานข้อมูลอีกครั้งก่อน insert ถ้าเต็มคืนข้อความ "กิจกรรมนี้เต็มแล้ว" ไม่มีคิวสำรอง เพราะกองกิจการนิสิตบอกว่าไม่ต้องการ'],
+    ['ทำไม register คืน String?', 'ถ้าคืน null แปลว่าสำเร็จ ถ้ามีข้อความแปลว่าไม่ผ่านและข้อความนั้นเอาไปขึ้น SnackBar ได้เลย หน้าจอเขียนแค่ error ?? "ลงทะเบียนสำเร็จ"'],
+    ['ยกเลิกได้ถึงเมื่อไหร่', 'ได้ถ้ายังไม่ถึงเวลาเริ่ม เช็คด้วย DateTime.now().isAfter(a.startAt) ยกเลิกแล้วลบแถวใน registrations ที่นั่งคืนทันที'],
+    ['ทำไมส่ง activityId ไปหน้ารายละเอียดแทน Activity ทั้งก้อน', 'หน้ารายละเอียดหา Activity จาก Provider ด้วย findById และ watch อยู่ ลงทะเบียนแล้วตัวเลขจำนวนคนเปลี่ยนเองทันที ถ้าส่ง object ไปตรงๆ จะเป็นข้อมูล ณ ตอนกดเข้ามา ไม่อัปเดต'],
+    ['ประกาศใช้ FutureBuilder ทำไม', 'ประกาศดึงจากฐานข้อมูลเฉพาะตอนเปิดหน้ารายละเอียด ไม่ต้องเก็บใน Provider FutureBuilder โชว์แถบโหลดตอนรอ แล้วโชว์รายการเมื่อ snapshot มีข้อมูล ถ้าไม่มีก็บอกว่ายังไม่มีประกาศ'],
+    ['ป้ายสถานะบนการ์ดเลือกยังไง', 'statusText เช็คตามลำดับ ได้ชั่วโมงแล้ว กำลังจัดและลงทะเบียนแล้ว (สแกนได้) ลงทะเบียนแล้ว เต็มแล้ว ไม่งั้นบอกที่นั่งที่เหลือ เงื่อนไขที่สำคัญกว่าอยู่ก่อน'],
+    ['ActivityCard ทดสอบยังไง', 'การ์ดรับ activity statusText statusColor onTap ผ่าน constructor ไม่เรียก Provider เอง widget test จึงสร้างการ์ดด้วยข้อมูลตัวอย่างแล้วเช็คว่าขึ้นชื่อและป้ายถูก กดแล้ว onTap ถูกเรียก'],
+  ]},
+];
+const qaEl = document.getElementById('qa');
+for (const g of QA) {
+  const box = document.createElement('div');
+  box.className = 'qgroup';
+  if (g.owner) { box.dataset.o = g.owner; box.style.setProperty('--c', color(g.owner)); }
+  box.innerHTML = `<h3><i></i>${g.title}</h3>` + g.items.map(([q, a]) =>
+    `<details class="q"><summary>${esc(q)}</summary><div class="ans"><p>${esc(a)}</p></div></details>`).join('');
+  qaEl.append(box);
+}
+document.getElementById('openAll').addEventListener('click', () => qaEl.querySelectorAll('details').forEach(d => {
+  if (d.closest('[data-o]:not(.on)') && document.body.dataset.sel !== 'all') return;
+  d.open = true;
+}));
+document.getElementById('closeAll').addEventListener('click', () => qaEl.querySelectorAll('details').forEach(d => (d.open = false)));
+
 // ---------- รายละเอียดคน ----------
 function renderWho(sel) {
   const box = document.getElementById('who');
   if (sel === 'all') {
-    box.innerHTML = `<div class="who"><div style="display:grid;gap:10px"><h3>ภาพรวม</h3>
-      <p class="allnote">แอพมี 14 หน้า แบ่งตามขอบเขตงานที่กรอกในฟอร์ม ทุกคนใช้ Provider กับฐานข้อมูลของคนที่ 1 ไม่มีใครแก้ไฟล์ซ้ำกัน</p></div>
+    box.innerHTML = `<div class="who"><div style="display:grid;gap:10px;align-content:start"><h3>ภาพรวม</h3>
+      <p class="allnote">แอพ Flutter มี 14 หน้า ใช้ Provider 5 ตัว และ SQLite 7 ตาราง แบ่งงานตามขอบเขตในฟอร์ม ทุกคนเรียกฐานข้อมูลผ่าน DatabaseHelper ของคนที่ 1 ไม่มีใครแก้ไฟล์ซ้ำกัน analyze ไม่มีปัญหา test ผ่าน 11 ข้อ</p></div>
       <dl class="kv"><dt>คนที่ 1</dt><dd>${M[1].role}</dd><dt>คนที่ 2</dt><dd>${M[2].role}</dd><dt>คนที่ 3</dt><dd>${M[3].role}</dd><dt>คนที่ 4</dt><dd>${M[4].role}</dd></dl></div>`;
-    box.firstElementChild.style.removeProperty('--c');
     return;
   }
   const m = M[sel];
   const screens = Object.values(SCREENS).flat().filter(s => s[1] == sel).map(s => s[2]).join(', ');
+  const commits = COMMITS.filter(c => c[1] == sel).map(c => `<code>${c[0]}</code>`).join(' ');
   box.innerHTML = `<div class="who" style="--c:${color(sel)}">
-    <div style="display:grid;gap:14px">
+    <div style="display:grid;gap:14px;align-content:start">
       <h3>${m.name}</h3>
       <dl class="kv">
+        <dt>GitHub</dt><dd>${m.gh}</dd>
         <dt>ขอบเขตงาน</dt><dd>${m.role}</dd>
         <dt>ความต้องการ</dt><dd>${m.r}</dd>
         <dt>หน้าจอ</dt><dd>${screens}</dd>
         <dt>ใช้บทเรียน</dt><dd>${m.lessons}</dd>
-        <dt>โฟลเดอร์</dt><dd><code>${m.folder}</code> test คือ <code>${m.test}</code></dd>
+        <dt>commit</dt><dd>${commits}</dd>
+        <dt>test</dt><dd><code>${m.test}</code></dd>
       </dl>
     </div>
     <div style="display:grid;gap:10px;align-content:start">
@@ -461,80 +1014,25 @@ function renderWho(sel) {
     </div></div>`;
 }
 
-// ---------- คำสั่ง ----------
-function cmdBlocks(n) {
-  const m = M[n];
-  const first = n == 1;
-  const a = [
-    'cd ([Environment]::GetFolderPath("Desktop"))',
-    `git clone ${REPO}`,
-    'cd NU_Activity_Transcription',
-    ...(first ? [] : ['git pull']),
-    `robocopy ..\\NU_Activity_push_kits\\${m.folder}\\files . /E`,
-    'flutter pub get',
-    'flutter analyze',
-  ].join('\n');
-  const b = [
-    'git add .',
-    `git commit -m "${m.commit}"`,
-    ...(first ? ['git branch -M main', 'git push -u origin main'] : ['git pull --rebase', 'git push']),
-  ].join('\n');
-  return `
-    <div class="cmd-step"><h3>ก้อนที่ 1 <em>${first ? 'ทำได้เลย' : 'รอคนที่ 1 push ก่อน'}</em></h3>
-      <div class="code"><button class="copy" type="button">กอป</button><pre>${a}</pre></div></div>
-    <div class="check">บรรทัดสุดท้ายต้องขึ้น <code>No issues found!</code> ถ้าขึ้นแล้วค่อยวางก้อนที่ 2</div>
-    <div class="cmd-step"><h3>ก้อนที่ 2 <em>ส่งขึ้น GitHub</em></h3>
-      <div class="code"><button class="copy" type="button">กอป</button><pre>${b}</pre></div></div>
-    <div class="check">เสร็จแล้วบอกในกลุ่มว่า "${m.name} push แล้ว"</div>`;
-}
-let cmdSel = 1;
-const cmdTabs = document.getElementById('cmdTabs');
-for (const n of [1, 2, 3, 4]) {
-  const b = document.createElement('button');
-  b.className = 'pick';
-  b.style.setProperty('--c', color(n));
-  b.dataset.cmd = n;
-  b.innerHTML = `<b><span class="dot"></span>${M[n].name}</b>`;
-  b.addEventListener('click', () => { cmdSel = n; renderCmds(); });
-  cmdTabs.append(b);
-}
-function renderCmds() {
-  document.getElementById('cmds').innerHTML = cmdBlocks(cmdSel);
-  cmdTabs.querySelectorAll('[data-cmd]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cmd == cmdSel));
-}
-
-document.addEventListener('click', async e => {
-  const btn = e.target.closest('.copy');
-  if (!btn) return;
-  const pre = btn.parentElement.querySelector('pre');
-  try {
-    await navigator.clipboard.writeText(pre.textContent);
-    btn.textContent = 'กอปแล้ว';
-  } catch {
-    const r = document.createRange(); r.selectNodeContents(pre);
-    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-    btn.textContent = 'กด Ctrl+C';
-  }
-  setTimeout(() => (btn.textContent = 'กอป'), 1600);
-});
-
 // ---------- เลือกคน ----------
 function select(sel) {
   document.body.dataset.sel = sel;
   document.querySelectorAll('.picker .pick').forEach(b => b.setAttribute('aria-pressed', b.dataset.pick === sel));
   document.querySelectorAll('[data-o]').forEach(el => el.classList.toggle('on', el.dataset.o === sel));
   renderWho(sel);
-  if (sel !== 'all') { cmdSel = Number(sel); renderCmds(); }
+  if (sel !== 'all') {
+    const s = SCEN.find(x => x.owner == sel);
+    if (s && scen.owner != sel) { scen = s; stepI = 0; renderTrace(); }
+  }
   try { localStorage.setItem('nuat-team-sel', sel); } catch {}
 }
 document.querySelectorAll('.picker .pick').forEach(b => b.addEventListener('click', () => select(b.dataset.pick)));
 
 // ---------- จำลองการ push ----------
-const ORDER = [1, 4, 3, 2];
+const ORDER = [1, 2, 4, 3];
 const tilesEl = document.getElementById('tiles');
-const allScreens = Object.values(SCREENS).flat();
 const TILE_DATA = [
-  ...allScreens.map(s => ({ owner: s[1], label: s[2] })),
+  ...Object.values(SCREENS).flat().map(s => ({ owner: s[1], label: s[2] })),
   { owner: 1, label: 'ฐานข้อมูลและ model' },
   { owner: 2, label: 'qr / gps / claim service' },
   { owner: 3, label: 'excel service' },
@@ -554,27 +1052,21 @@ for (const n of ORDER) {
   el.className = 'laptop';
   el.dataset.o = n;
   el.style.setProperty('--c', color(n));
-  el.innerHTML = `<span class="dot"></span><div><b>${M[n].name}</b><small>โฟลเดอร์ ${M[n].folder}</small></div><span class="tick">push แล้ว</span>`;
+  el.innerHTML = `<span class="dot"></span><div><b>${M[n].name}</b><small>${M[n].gh}</small></div><span class="tick">push แล้ว</span>`;
   laptopsEl.append(el);
   laptops[n] = el;
 }
 const statusEl = document.getElementById('status');
-const logEl = document.getElementById('log');
 const sim = document.getElementById('sim');
-let stepIndex = 0;
-let busy = false;
-let playing = false;
-
+let simI = 0, busy = false, playing = false;
 function resetSim() {
-  stepIndex = 0;
+  simI = 0;
   tiles.forEach(t => (t.el.className = 'tile empty'));
   Object.values(laptops).forEach(l => (l.className = 'laptop'));
-  logEl.innerHTML = '';
   statusEl.style.removeProperty('--c');
   statusEl.textContent = 'repo ยังว่างอยู่ กด "เล่นทั้งหมด" หรือ "ทีละขั้น"';
   updateButtons();
 }
-
 function flyPacket(n) {
   const from = laptops[n].getBoundingClientRect();
   const to = document.getElementById('repo').getBoundingClientRect();
@@ -590,24 +1082,19 @@ function flyPacket(n) {
     { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 40}px) scale(1.1)`, opacity: 1, offset: .5 },
     { transform: `translate(${x1}px, ${y1}px) scale(.8)`, opacity: .9 },
   ], { duration: 900, easing: 'cubic-bezier(.23,1,.32,1)' });
-  // ไปต่อตามเวลา ไม่รอ animation จบ เผื่อเบราว์เซอร์หยุด animation ไว้
   return new Promise(r => setTimeout(() => { p.remove(); r(); }, 900));
 }
-
 async function runStep() {
-  if (busy || stepIndex >= ORDER.length) return;
+  if (busy || simI >= ORDER.length) return;
   busy = true; updateButtons();
-  const n = ORDER[stepIndex];
-  const m = M[n];
-  const lap = laptops[n];
+  const n = ORDER[simI], m = M[n], lap = laptops[n];
   lap.classList.add('active');
   statusEl.style.setProperty('--c', color(n));
-  statusEl.innerHTML = `<b>${m.name}</b> กำลัง push โฟลเดอร์ <code>${m.folder}</code>`;
+  statusEl.innerHTML = `<b>${m.name}</b> กำลัง push`;
   await flyPacket(n);
   if (n === 1) {
     tiles.forEach((t, i) => setTimeout(() => {
-      t.el.className = 'tile ' + (t.owner === 1 ? 'real' : 'temp');
-      t.el.classList.add('flash');
+      t.el.className = 'tile ' + (t.owner === 1 ? 'real' : 'temp') + ' flash';
       setTimeout(() => t.el.classList.remove('flash'), 300);
     }, i * 45));
   } else {
@@ -619,32 +1106,26 @@ async function runStep() {
   await new Promise(r => setTimeout(r, n === 1 ? 900 : 650));
   lap.classList.remove('active');
   lap.classList.add('done');
-  const line = document.createElement('div');
-  line.style.setProperty('--c', color(n));
-  line.textContent = `${m.name}: ${m.commit}`;
-  logEl.prepend(line);
   const left = tiles.filter(t => t.el.classList.contains('temp')).length;
   statusEl.innerHTML = `<b>${m.name}</b> push แล้ว แอพตอนนี้ ${m.can}` +
-    (stepIndex === ORDER.length - 1 ? ` ไม่เหลือไฟล์ชั่วคราวแล้ว ใครก็ได้รัน <code>flutter test</code> เช็คอีกรอบ` : ` (เหลือไฟล์ชั่วคราว ${left} ชิ้น)`);
-  stepIndex++;
+    (simI === ORDER.length - 1 ? ' ไม่เหลือไฟล์ชั่วคราวแล้ว' : ` (เหลือไฟล์ชั่วคราว ${left} ชิ้น)`);
+  simI++;
   busy = false; updateButtons();
 }
-
 async function playAll() {
   if (playing) return;
-  if (stepIndex >= ORDER.length) resetSim();
+  if (simI >= ORDER.length) resetSim();
   playing = true; updateButtons();
-  while (stepIndex < ORDER.length) {
+  while (simI < ORDER.length) {
     await runStep();
     await new Promise(r => setTimeout(r, 700));
   }
   playing = false; updateButtons();
 }
-
 function updateButtons() {
-  document.getElementById('step').disabled = busy || playing || stepIndex >= ORDER.length;
+  document.getElementById('step').disabled = busy || playing || simI >= ORDER.length;
   document.getElementById('play').disabled = playing;
-  document.getElementById('play').textContent = stepIndex >= ORDER.length ? 'เล่นอีกครั้ง' : 'เล่นทั้งหมด';
+  document.getElementById('play').textContent = simI >= ORDER.length ? 'เล่นอีกครั้ง' : 'เล่นทั้งหมด';
   document.getElementById('reset').disabled = busy || playing;
 }
 document.getElementById('play').addEventListener('click', playAll);
@@ -655,9 +1136,11 @@ document.getElementById('reset').addEventListener('click', resetSim);
 let saved = 'all';
 try { saved = localStorage.getItem('nuat-team-sel') || 'all'; } catch {}
 if (!['all', '1', '2', '3', '4'].includes(saved)) saved = 'all';
-renderCmds();
+renderTrace();
+renderCheat();
 select(saved);
 updateButtons();
 </script>
+
 </body>
 </html>
