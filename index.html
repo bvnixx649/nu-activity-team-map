@@ -205,16 +205,43 @@ body[data-sel]:not([data-sel="all"]) .qa [data-o]:not(.on) { display: none; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 6px; vertical-align: middle; }
 
-/* ไฟล์ */
-.tree { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; overflow-x: auto; }
-.tree ul { list-style: none; margin: 0; padding-left: 18px; }
-.tree > ul { padding-left: 0; }
-.folder { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); padding-block: 4px; }
-.file { display: grid; grid-template-columns: 12px minmax(0, max-content) minmax(0, 1fr); gap: 10px; align-items: baseline; padding-block: 3px; }
-.file i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); align-self: center; }
-.file code { font-size: .85rem; white-space: nowrap; }
-.file span { color: var(--muted); font-size: .85rem; min-width: 0; }
-@media (max-width: 560px) { .file { grid-template-columns: 12px minmax(0, 1fr); } .file span { grid-column: 2; } }
+/* แผนที่ไฟล์ */
+.fm { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 20px; align-items: start; }
+@media (max-width: 899px) { .fm { grid-template-columns: 1fr; } }
+.fm-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; min-width: 0; }
+.fm-group { display: grid; gap: 6px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; min-width: 0; }
+.fm-group h3 { font-size: .88rem; display: grid; gap: 0; }
+.fm-group h3 small { font-weight: 400; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.fm-legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.fm-legend .fbtn { cursor: default; font-family: var(--font-body); }
+.fbtn {
+  font: inherit; font-family: var(--font-mono); font-size: .76rem; text-align: left; cursor: pointer; min-width: 0;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 6px 10px;
+  display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; transition: border-color .2s, background .2s, opacity .35s, filter .35s;
+}
+.fbtn i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+.fbtn em { font-style: normal; margin-left: auto; font-family: var(--font-body); font-size: .68rem; color: var(--muted); white-space: nowrap; }
+.fbtn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.fbtn.sel { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, var(--surface)); font-weight: 600; }
+.fbtn.use { border-color: var(--ink); background: var(--surface); }
+.fbtn.by { border-color: var(--ink); border-style: dashed; background: var(--surface); }
+.fbtn.nav { border-color: var(--accent); border-style: dotted; background: var(--surface); }
+.fm-panel {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 92px); max-height: calc(100vh - 110px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--c, var(--line)); border-radius: 20px;
+  padding: 18px; display: grid; gap: 14px; min-width: 0; scroll-margin-top: 96px;
+}
+@media (max-width: 899px) { .fm-panel { position: static; max-height: none; } .fm-groups .fm-panel { grid-column: 1 / -1; } }
+.fm-panel h3 { font-family: var(--font-mono); font-size: .95rem; overflow-wrap: anywhere; }
+.fm-panel .owner { font-size: .85rem; color: var(--muted); }
+.fm-panel .owner b { color: var(--c); }
+.fm-funcs { display: grid; gap: 8px; margin: 0; }
+.fm-funcs dt { font-family: var(--font-mono); font-size: .8rem; font-weight: 500; overflow-wrap: anywhere; }
+.fm-funcs dd { margin: 0; font-size: .88rem; color: var(--muted); }
+.fm-rel { display: grid; gap: 6px; }
+.fm-rel h4 { margin: 0; font-size: .85rem; font-weight: 600; }
+.fm-rel .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.fm-rel .none, .fm-basic { font-size: .82rem; color: var(--muted); }
 
 /* commit */
 .timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
@@ -356,10 +383,19 @@ details.q .ans p { max-width: 70ch; }
 
   <section>
     <div class="sec-head">
-      <h2>ไฟล์ในโฟลเดอร์ lib และ test</h2>
-      <p class="lead">จุดสีหน้าไฟล์คือเจ้าของ ไม่มีใครแก้ไฟล์ซ้ำกัน ทุกคนเรียกฐานข้อมูลผ่าน <code>DatabaseHelper</code> ของคนที่ 1</p>
+      <h2>แผนที่ไฟล์ในแอพ</h2>
+      <p class="lead">กดไฟล์ไหนก็ได้ จะเห็นว่าไฟล์นั้นทำอะไร มีฟังก์ชันหลักอะไร เรียกใช้ไฟล์ไหน ไฟล์ไหนเรียกใช้มัน และเปิดไปหน้าไหนต่อ ความสัมพันธ์ดึงจาก import จริงในโค้ด จุดสีหน้าไฟล์คือเจ้าของ</p>
     </div>
-    <div class="tree" id="tree"></div>
+    <div class="fm-legend">
+      <span class="fbtn sel" style="--c:var(--accent)">ไฟล์ที่เลือก</span>
+      <span class="fbtn use">ไฟล์นี้เรียกใช้</span>
+      <span class="fbtn by">เรียกใช้ไฟล์นี้</span>
+      <span class="fbtn nav">เปิดไปหน้านี้</span>
+    </div>
+    <div class="fm" id="fm">
+      <div class="fm-groups" id="fmGroups"></div>
+      <aside class="fm-panel" id="fmPanel" aria-live="polite"></aside>
+    </div>
   </section>
 
   <section>
@@ -841,42 +877,266 @@ for (const [title, list] of Object.entries(SCREENS)) {
   lanes.append(lane);
 }
 
-// ---------- ไฟล์ ----------
-const TREE = [
-  ['lib', [
-    ['main.dart', 1, 'จุดเริ่มแอพ MultiProvider และ StartScreen'],
-    ['app', [['routes.dart', 1, 'ชื่อหน้าทั้งหมด onGenerateRoute'], ['theme.dart', 1, 'สีและฟอนต์']]],
-    ['models', [['activity.dart  student.dart  registration.dart', 1, 'class ข้อมูล toMap fromMap'], ['credit.dart  announcement.dart  app_notice.dart  claim_result.dart', 1, 'class ข้อมูลที่เหลือ']]],
-    ['helpers', [['database_helper.dart', 1, 'Singleton SQLite 7 ตาราง'], ['seed_data.dart', 1, 'กิจกรรม หน่วยงาน และรายชื่อตัวอย่าง']]],
-    ['utils', [['constants.dart', 1, 'ระยะ 200 ม. อายุ QR 15 วิ เปลี่ยนทุก 10 วิ'], ['thai_date.dart', 1, 'วันที่ พ.ศ.'], ['validators.dart', 1, 'ตรวจรหัสนิสิต 8 หลัก PIN 6 หลัก']]],
-    ['providers', [['auth_provider.dart', 1, 'เข้าระบบ ออกระบบ โหมดผู้คุม'], ['credit_provider.dart', 1, 'ชั่วโมงสะสม'], ['notice_provider.dart', 1, 'แจ้งเตือน'], ['activity_provider.dart', 4, 'กิจกรรม ค้นหา ลงทะเบียน ยกเลิก'], ['supervisor_provider.dart', 3, 'รายชื่อ ค้นหา ให้ชั่วโมง ประกาศ']]],
-    ['services', [['qr_service.dart', 2, 'สร้างและอ่าน QR พร้อมลายเซ็น'], ['location_service.dart', 2, 'อ่าน GPS timeout 15 วิ'], ['claim_service.dart', 2, 'ตรวจ 5 ข้อแล้วบันทึกชั่วโมง'], ['excel_export_service.dart', 3, 'สร้างไฟล์ .xlsx แล้วแชร์']]],
-    ['widgets', [['activity_card.dart', 4, 'การ์ดกิจกรรม Stack ป้ายทับโปสเตอร์']]],
-    ['screens/student', [['welcome  student_shell  inbox  profile', 1, '4 หน้า'], ['home  activity_detail  mine', 4, '3 หน้า'], ['scan  claim_result', 2, '2 หน้า']]],
-    ['screens/supervisor', [['sup_login  sup_home  activity_editor  manage', 3, '4 หน้า'], ['qr_presenter', 2, '1 หน้า']]],
-  ]],
-  ['test', [['validators_test.dart', 1, 'unit test'], ['qr_service_test.dart', 2, 'unit test 4 ข้อ'], ['excel_export_test.dart', 3, 'unit test'], ['activity_card_test.dart', 4, 'widget test']]],
-  ['pubspec.yaml  android/  ios/  assets/', 1, 'แพ็กเกจ สิทธิ์กล้องกับ GPS รูปโปสเตอร์'],
+// ---------- แผนที่ไฟล์ ----------
+// import จริงจาก commit 8ad7ebd (ไม่นับแพ็กเกจภายนอก)
+const IMPORTS = {
+  'main.dart': 'app/routes.dart app/theme.dart providers/activity_provider.dart providers/auth_provider.dart providers/credit_provider.dart providers/notice_provider.dart providers/supervisor_provider.dart screens/student/student_shell.dart screens/student/welcome_screen.dart',
+  'app/routes.dart': 'models/activity.dart models/claim_result.dart screens/student/activity_detail_screen.dart screens/student/claim_result_screen.dart screens/student/scan_screen.dart screens/supervisor/activity_editor_screen.dart screens/supervisor/manage_screen.dart screens/supervisor/qr_presenter_screen.dart screens/supervisor/sup_home_screen.dart screens/supervisor/sup_login_screen.dart',
+  'app/theme.dart': '',
+  'helpers/database_helper.dart': 'models/activity.dart models/announcement.dart models/app_notice.dart models/credit.dart models/registration.dart models/student.dart helpers/seed_data.dart',
+  'helpers/seed_data.dart': 'models/activity.dart models/registration.dart utils/constants.dart',
+  'models/activity.dart': '', 'models/announcement.dart': '', 'models/app_notice.dart': '',
+  'models/claim_result.dart': 'models/credit.dart', 'models/credit.dart': '', 'models/registration.dart': '', 'models/student.dart': '',
+  'providers/activity_provider.dart': 'helpers/database_helper.dart models/activity.dart models/announcement.dart models/registration.dart models/student.dart',
+  'providers/auth_provider.dart': 'helpers/database_helper.dart models/student.dart',
+  'providers/credit_provider.dart': 'helpers/database_helper.dart models/credit.dart',
+  'providers/notice_provider.dart': 'helpers/database_helper.dart models/app_notice.dart',
+  'providers/supervisor_provider.dart': 'helpers/database_helper.dart models/activity.dart models/announcement.dart models/app_notice.dart models/credit.dart models/registration.dart utils/constants.dart',
+  'screens/student/activity_detail_screen.dart': 'app/routes.dart app/theme.dart models/activity.dart models/announcement.dart providers/activity_provider.dart providers/auth_provider.dart providers/credit_provider.dart utils/thai_date.dart',
+  'screens/student/claim_result_screen.dart': 'app/routes.dart app/theme.dart models/claim_result.dart providers/auth_provider.dart utils/thai_date.dart',
+  'screens/student/home_screen.dart': 'app/routes.dart app/theme.dart models/activity.dart providers/activity_provider.dart providers/auth_provider.dart providers/credit_provider.dart utils/constants.dart widgets/activity_card.dart',
+  'screens/student/inbox_screen.dart': 'app/routes.dart app/theme.dart providers/notice_provider.dart utils/thai_date.dart',
+  'screens/student/mine_screen.dart': 'app/routes.dart app/theme.dart models/activity.dart providers/activity_provider.dart providers/credit_provider.dart utils/thai_date.dart screens/student/home_screen.dart',
+  'screens/student/profile_screen.dart': 'app/routes.dart app/theme.dart providers/auth_provider.dart providers/credit_provider.dart utils/constants.dart utils/thai_date.dart',
+  'screens/student/scan_screen.dart': 'app/routes.dart app/theme.dart providers/auth_provider.dart providers/credit_provider.dart providers/notice_provider.dart services/claim_service.dart',
+  'screens/student/student_shell.dart': 'app/routes.dart app/theme.dart providers/auth_provider.dart providers/credit_provider.dart providers/notice_provider.dart screens/student/home_screen.dart screens/student/inbox_screen.dart screens/student/mine_screen.dart screens/student/profile_screen.dart',
+  'screens/student/welcome_screen.dart': 'app/routes.dart app/theme.dart providers/auth_provider.dart utils/constants.dart utils/validators.dart',
+  'screens/supervisor/activity_editor_screen.dart': 'app/theme.dart models/activity.dart providers/auth_provider.dart providers/supervisor_provider.dart utils/constants.dart utils/thai_date.dart utils/validators.dart',
+  'screens/supervisor/manage_screen.dart': 'app/routes.dart app/theme.dart models/activity.dart providers/supervisor_provider.dart services/excel_export_service.dart utils/constants.dart utils/thai_date.dart utils/validators.dart',
+  'screens/supervisor/qr_presenter_screen.dart': 'app/theme.dart models/activity.dart services/location_service.dart services/qr_service.dart utils/constants.dart utils/thai_date.dart',
+  'screens/supervisor/sup_home_screen.dart': 'app/routes.dart app/theme.dart models/activity.dart providers/auth_provider.dart providers/supervisor_provider.dart utils/thai_date.dart',
+  'screens/supervisor/sup_login_screen.dart': 'app/routes.dart app/theme.dart providers/auth_provider.dart utils/validators.dart',
+  'services/claim_service.dart': 'helpers/database_helper.dart models/app_notice.dart models/claim_result.dart models/credit.dart models/student.dart utils/constants.dart utils/thai_date.dart services/location_service.dart services/qr_service.dart',
+  'services/excel_export_service.dart': 'models/activity.dart providers/supervisor_provider.dart utils/thai_date.dart',
+  'services/location_service.dart': '',
+  'services/qr_service.dart': 'models/activity.dart utils/constants.dart',
+  'utils/constants.dart': '', 'utils/thai_date.dart': '', 'utils/validators.dart': '',
+  'widgets/activity_card.dart': 'app/theme.dart models/activity.dart utils/thai_date.dart',
+  'test/validators_test.dart': 'utils/validators.dart',
+  'test/qr_service_test.dart': 'helpers/seed_data.dart services/qr_service.dart',
+  'test/excel_export_test.dart': 'helpers/seed_data.dart models/credit.dart providers/supervisor_provider.dart services/excel_export_service.dart utils/constants.dart',
+  'test/activity_card_test.dart': 'helpers/seed_data.dart widgets/activity_card.dart',
+};
+// เปิดหน้าไหนต่อ (pushNamed ในโค้ด และแท็บของแถบล่าง)
+const NAV = {
+  'main.dart': ['screens/student/welcome_screen.dart', 'screens/student/student_shell.dart'],
+  'screens/student/welcome_screen.dart': ['screens/supervisor/sup_login_screen.dart'],
+  'screens/student/student_shell.dart': ['screens/student/home_screen.dart', 'screens/student/mine_screen.dart', 'screens/student/inbox_screen.dart', 'screens/student/profile_screen.dart', 'screens/student/scan_screen.dart'],
+  'screens/student/home_screen.dart': ['screens/student/activity_detail_screen.dart'],
+  'screens/student/mine_screen.dart': ['screens/student/activity_detail_screen.dart'],
+  'screens/student/inbox_screen.dart': ['screens/student/activity_detail_screen.dart'],
+  'screens/student/activity_detail_screen.dart': ['screens/student/scan_screen.dart'],
+  'screens/student/scan_screen.dart': ['screens/student/claim_result_screen.dart'],
+  'screens/student/claim_result_screen.dart': ['screens/student/scan_screen.dart'],
+  'screens/student/profile_screen.dart': ['screens/supervisor/sup_login_screen.dart', 'screens/supervisor/sup_home_screen.dart'],
+  'screens/supervisor/sup_login_screen.dart': ['screens/supervisor/sup_home_screen.dart'],
+  'screens/supervisor/sup_home_screen.dart': ['screens/supervisor/activity_editor_screen.dart', 'screens/supervisor/manage_screen.dart'],
+  'screens/supervisor/manage_screen.dart': ['screens/supervisor/activity_editor_screen.dart', 'screens/supervisor/qr_presenter_screen.dart'],
+};
+const BASIC = ['app/theme.dart', 'app/routes.dart', 'utils/constants.dart', 'utils/thai_date.dart', 'utils/validators.dart'];
+const FILES = {
+  'main.dart': [1, 'จุดเริ่มของแอพ วาง Provider ทั้ง 5 ตัวไว้บนสุดด้วย MultiProvider แล้วให้ StartScreen เลือกหน้าแรก ยังโหลดอยู่โชว์ตัวหมุน ยังไม่เข้าระบบโชว์หน้าสมัคร เข้าแล้วโชว์แถบล่าง', [
+    ['main()', 'runApp กับ MultiProvider สร้าง AuthProvider แล้วเรียก loadSavedLogin() ทันที'],
+    ['MyApp', 'MaterialApp ใส่ appTheme() และ onGenerateRoute: generateRoute'],
+    ['StartScreen', 'watch AuthProvider แล้วเลือกหน้า ไม่ต้องสั่ง Navigator']]],
+  'app/routes.dart': [1, 'สมุดรายชื่อหน้า ทุกครั้งที่เรียก pushNamed Flutter จะถามไฟล์นี้ว่าชื่อหน้านี้คือหน้าจอไหน แล้วส่ง arguments ให้', [
+    ['class Routes', 'ชื่อหน้า 8 หน้าเป็นค่าคงที่ เช่น Routes.scan'],
+    ['generateRoute(settings)', 'แปลง arguments ให้เป็นชนิดที่หน้านั้นต้องการ เช่น args as String ไม่เจอชื่อหน้าโชว์ "ไม่พบหน้า"']]],
+  'app/theme.dart': [1, 'สีกลางของแอพ (kOrange kGreen kRed kGrey kDark) และ appTheme() ทุกหน้าใช้สีจากไฟล์นี้ แก้ที่เดียวเปลี่ยนทั้งแอพ', [
+    ['appTheme()', 'ThemeData ที่ main.dart ส่งให้ MaterialApp']]],
+  'screens/student/welcome_screen.dart': [1, 'หน้าสมัครและเข้าระบบของนิสิต กรอกรหัสนิสิต ชื่อ คณะ และ PIN สำเร็จแล้ว AuthProvider เปลี่ยน StartScreen จึงสลับไปแถบล่างเอง', [
+    ['_formKey', 'GlobalKey<FormState> ใช้เรียก validate() ทุกช่องพร้อมกัน'],
+    ['_submit()', 'ตรวจฟอร์ม แล้วเรียก signUp หรือ signIn ได้ข้อความกลับมาก็โชว์ error'],
+    ['autovalidateMode', 'onUserInteraction ข้อความแดงหายเมื่อพิมพ์ถูก (commit 8ad7ebd)']]],
+  'screens/student/student_shell.dart': [1, 'โครงหลักฝั่งนิสิต แถบล่าง 4 แท็บกับปุ่มสแกนสีส้ม ตอนเปิดโหลดชั่วโมงและแจ้งเตือนของนิสิตคนนี้', [
+    ['initState()', 'Future.microtask แล้วเรียก loadCredits กับ loadNotices'],
+    ['IndexedStack', 'สร้างทั้ง 4 แท็บไว้ สลับแล้วคำค้นหาและตำแหน่งที่เลื่อนไม่หาย'],
+    ['Badge', 'ตัวเลขแจ้งเตือนที่ยังไม่อ่าน จาก unreadCount']]],
+  'screens/student/home_screen.dart': [4, 'หน้าแรก รายการกิจกรรมที่ยังไม่จบ มีช่องค้นหา ตัวกรองประเภท และดึงลงเพื่อโหลดใหม่ กดการ์ดไปหน้ารายละเอียด', [
+    ['_reload()', 'เรียก loadActivities(studentId)'],
+    ['ListView.builder', 'index 0 เป็นช่องค้นหา ที่เหลือเป็น ActivityCard'],
+    ['statusText() statusColor()', 'เลือกข้อความและสีป้ายบนการ์ด หน้าของฉันก็เรียกใช้']]],
+  'screens/student/activity_detail_screen.dart': [4, 'รายละเอียดกิจกรรม โปสเตอร์ วันเวลา สถานที่ ชั่วโมง ที่นั่ง ปุ่มลงทะเบียนหรือยกเลิก ปุ่มไปหน้าสแกน และประกาศจากผู้คุม', [
+    ['findById(activityId)', 'หากิจกรรมจาก Provider ที่ watch อยู่ ลงทะเบียนแล้วตัวเลขเปลี่ยนเอง'],
+    ['_actionButton()', 'เลือกปุ่มตามสถานะ ได้ชั่วโมงแล้ว ลงทะเบียนแล้ว เต็ม หรือยังไม่ลง'],
+    ['FutureBuilder', 'โหลดประกาศของกิจกรรมนี้ตอนเปิดหน้า']]],
+  'screens/student/mine_screen.dart': [4, 'กิจกรรมของฉัน แยกที่กำลังจะถึงกับที่ผ่านมา กดไปหน้ารายละเอียดได้', [
+    ['myActivities', 'getter จาก activity_provider']]],
+  'screens/student/scan_screen.dart': [2, 'เปิดกล้องอ่าน QR ส่งข้อความใน QR ให้ claim_service ตรวจ แล้วไปหน้าผล', [
+    ['_onDetect()', '_isChecking กันตรวจซ้อน หยุดกล้อง แล้วเรียก checkAndSave'],
+    ['pushReplacementNamed', 'ให้หน้าผลแทนที่หน้ากล้อง กดย้อนแล้วไม่กลับมาที่กล้อง'],
+    ['dispose()', 'ปิดกล้อง']]],
+  'screens/student/claim_result_screen.dart': [2, 'ผลการสแกน ผ่านแล้วโชว์บัตรยืนยัน ชั่วโมง ระยะ เลขอ้างอิง ไม่ผ่านโชว์เหตุผลพร้อมปุ่มสแกนอีกครั้ง', [
+    ['_ticket()', 'บัตรยืนยันเมื่อสำเร็จ'],
+    ['_failCard()', 'กล่องเหตุผลเมื่อไม่ผ่าน']]],
+  'screens/student/inbox_screen.dart': [1, 'กล่องแจ้งเตือน ได้รับชั่วโมงและประกาศจากผู้คุม กดแล้วไปหน้ากิจกรรมนั้น มีปุ่มอ่านทั้งหมด', [
+    ['markAllRead()', 'เรียก notice_provider ตัวเลขบนแถบล่างหายทันที']]],
+  'screens/student/profile_screen.dart': [1, 'Transcript ชั่วโมงรวม แยกจิตอาสากับกิจกรรมคณะ ปุ่มเข้าโหมดผู้คุม และออกจากระบบ', [
+    ['_kindSummary()', 'ชั่วโมงและจำนวนครั้งของแต่ละประเภท จาก credit_provider'],
+    ['auth.signOut()', 'ออกจากระบบ StartScreen กลับไปหน้าสมัครเอง']]],
+  'screens/supervisor/sup_login_screen.dart': [3, 'เข้าโหมดผู้คุม กรอกชื่อและรหัสหน่วยงาน เช่น NUVOL26', [
+    ['_submit()', 'validate แล้วเรียก enterSupervisor ผ่านแล้วไปหน้ากิจกรรมของหน่วยงาน']]],
+  'screens/supervisor/sup_home_screen.dart': [3, 'กิจกรรมของหน่วยงาน แยกกำลังจัด จะมาถึง จบแล้ว มีปุ่มสร้างกิจกรรมใหม่และออกจากโหมดผู้คุม', [
+    ['_reload()', 'loadActivities(orgCode)'],
+    ['await pushNamed', 'รอกลับจากหน้าแก้ไขหรือจัดการ แล้วโหลดใหม่'],
+    ['exitSupervisor()', 'ออกจากโหมดผู้คุม']]],
+  'screens/supervisor/activity_editor_screen.dart': [3, 'ฟอร์มสร้างหรือแก้ไขกิจกรรม ถ้า activityId เป็น null คือสร้างใหม่ เลือกวันเวลา ชั่วโมง จำนวนคน และโปสเตอร์', [
+    ['_save()', 'validate เช็คเวลาจบต้องหลังเวลาเริ่ม แล้ว saveActivity(activity, isNew)'],
+    ['_pickDate() _pickTime()', 'showDatePicker และ showTimePicker'],
+    ['dispose()', 'ปิด TextEditingController']]],
+  'screens/supervisor/manage_screen.dart': [3, 'หน้าหลักของผู้คุมต่อหนึ่งกิจกรรม ตัวเลขสรุป ปุ่มเปิด QR ส่งประกาศ Export และรายชื่อที่ค้นหาและกรองได้', [
+    ['_showRosterMenu()', 'showModalBottomSheet ให้ชั่วโมง ยกเลิกชั่วโมง หรือลบออก'],
+    ['_confirmRemove()', 'AlertDialog ยืนยันก่อนลบ (commit 3a46b66)'],
+    ['_showAddDialog()', 'ฟอร์มเพิ่มนิสิตเองกรณีแบตหมด'],
+    ['Export Excel', 'try/catch รอบ exportAndShare พังแล้วขึ้น SnackBar']]],
+  'screens/supervisor/qr_presenter_screen.dart': [2, 'จอ QR ของผู้คุม อ่าน GPS แล้วสร้าง QR ใหม่ทุก 10 วินาที มีแถบนับถอยหลัง อ่าน GPS ไม่ได้โชว์ข้อความพร้อมปุ่มลองใหม่', [
+    ['_start()', 'อ่านพิกัด เช็ค mounted สร้าง QR แล้วเริ่ม Timer'],
+    ['_makeNewQr()', 'createQrText แล้ว setState'],
+    ['dispose()', '_timer?.cancel()']]],
+  'providers/auth_provider.dart': [1, 'จำว่าใครเข้าระบบอยู่ ทั้งนิสิตและโหมดผู้คุม เก็บรหัสที่จำไว้ด้วย SharedPreferences', [
+    ['loadSavedLogin()', 'ตอนเปิดแอพ อ่าน student_id ที่จำไว้แล้วหานิสิตในฐานข้อมูล'],
+    ['signUp() signIn()', 'คืน null ถ้าสำเร็จ คืนข้อความถ้าไม่ผ่าน'],
+    ['hashPin()', 'sha256 ของรหัสนิสิตกับ PIN'],
+    ['enterSupervisor() exitSupervisor()', 'ตรวจรหัสหน่วยงานกับตาราง orgs'],
+    ['signOut()', 'ลบ student_id แล้ว notifyListeners']]],
+  'providers/credit_provider.dart': [1, 'ชั่วโมงสะสมของนิสิต ยอดรวมคำนวณจากรายการทุกครั้ง ไม่ได้เก็บยอดรวมไว้', [
+    ['loadCredits()', 'อ่านตาราง credits ของนิสิตคนนี้'],
+    ['totalHours hoursOfKind()', 'บวกชั่วโมงทั้งหมด หรือเฉพาะประเภท'],
+    ['hasCredit()', 'ใช้ทำป้าย "ได้รับชั่วโมงแล้ว" บนการ์ด']]],
+  'providers/notice_provider.dart': [1, 'แจ้งเตือนของนิสิต', [
+    ['loadNotices() refresh()', 'อ่านตาราง notices'],
+    ['unreadCount', 'จำนวนที่ยังไม่อ่าน โชว์บนแถบล่าง'],
+    ['markRead() markAllRead()', 'ทำเครื่องหมายว่าอ่านแล้ว']]],
+  'providers/activity_provider.dart': [4, 'กิจกรรม ที่นั่ง กิจกรรมที่นิสิตลงไว้ คำค้นหา และตัวกรอง', [
+    ['loadActivities()', 'อ่านกิจกรรม นับที่นั่ง และกิจกรรมที่ลงไว้ แล้ว notifyListeners'],
+    ['openActivities', 'getter กรองที่จบแล้ว ค้นหาชื่อ และประเภท'],
+    ['register()', 'นับที่นั่งจากฐานข้อมูลใหม่ก่อน insert'],
+    ['cancel()', 'ยกเลิกได้เฉพาะก่อนกิจกรรมเริ่ม'],
+    ['getAnnouncements()', 'ส่งให้ FutureBuilder หน้ารายละเอียด']]],
+  'providers/supervisor_provider.dart': [3, 'ข้อมูลฝั่งผู้คุม กิจกรรมของหน่วยงาน รายชื่อ และคำสั่งของผู้คุม', [
+    ['loadActivities() saveActivity()', 'อ่าน สร้าง และแก้ไขกิจกรรมของหน่วยงาน'],
+    ['loadRoster()', 'รวม registrations กับ credits เป็น RosterItem'],
+    ['filteredRoster', 'getter ค้นหาชื่อหรือรหัส และกรองสถานะ'],
+    ['giveCredit() removeCredit() removeFromRoster()', 'ให้ชั่วโมง ยกเลิกชั่วโมง ลบออกจากรายชื่อ'],
+    ['addStudentManually()', 'เพิ่มชื่อเอง บันทึกว่า "ผู้คุมยืนยันให้"'],
+    ['postAnnouncement()', 'บันทึกประกาศ แล้วสร้างแจ้งเตือนให้ทุกคนในรายชื่อ']]],
+  'services/qr_service.dart': [2, 'สร้างและอ่านข้อความใน QR พร้อมลายเซ็น ไม่แตะฐานข้อมูลเลย จึง test ได้ง่าย', [
+    ['createQrText()', 'JSON ของกิจกรรม ชั่วโมง เวลา พิกัด และ sign'],
+    ['readQrText()', 'เช็คว่าเป็น QR ของแอพ แล้วตรวจลายเซ็น ไม่ผ่านคืน null'],
+    ['_makeSign()', 'sha256 ของทุกช่องรวมกับ kQrSecret'],
+    ['qrAgeInSeconds()', 'อายุของ QR เป็นวินาที']]],
+  'services/location_service.dart': [2, 'อ่านตำแหน่ง GPS และคำนวณระยะ', [
+    ['getCurrentPosition()', 'เช็ค GPS เปิดไหม ขอสิทธิ์ รอไม่เกิน 15 วินาที พังคืน null'],
+    ['distanceInMeters()', 'Geolocator.distanceBetween เป็นเมตร']]],
+  'services/claim_service.dart': [2, 'ตรวจ 5 ข้อตอนนิสิตสแกน ลายเซ็น อายุ สแกนซ้ำ ลงทะเบียน ระยะ ผ่านครบแล้วบันทึกชั่วโมงและแจ้งเตือน', [
+    ['checkAndSave(qrText, student)', 'ตรวจทีละข้อ เจอข้อที่ไม่ผ่านคืน ClaimResult พร้อมเหตุผลทันที ผ่านครบเรียก insertCredit กับ insertNotice']]],
+  'services/excel_export_service.dart': [3, 'สร้างไฟล์ Excel ของรายชื่อแล้วเปิดหน้าแชร์ของมือถือ', [
+    ['headers', '11 คอลัมน์ ลำดับ รหัสนิสิต ชื่อ คณะ ไปจนถึงยืนยันโดย'],
+    ['makeRows()', 'แปลงรายชื่อเป็นแถว ไม่สร้างไฟล์ จึง unit test ได้'],
+    ['exportAndShare()', 'เขียนไฟล์ในโฟลเดอร์ชั่วคราว แล้ว SharePlus']]],
+  'helpers/database_helper.dart': [1, 'ที่เดียวที่อ่านเขียน SQLite เป็น Singleton สร้าง 7 ตารางตอนเปิดครั้งแรก Provider และ Service ทุกตัวเรียกผ่าน DatabaseHelper.instance', [
+    ['instance database', 'เปิดไฟล์ nuat.db ครั้งเดียวแล้วเก็บไว้ใน _database'],
+    ['_createDB()', 'CREATE TABLE 7 ตาราง แล้วใส่ข้อมูลตัวอย่าง'],
+    ['_moveDemoActivity()', 'onOpen เลื่อนกิจกรรมสาธิตให้กำลังจัดอยู่เสมอ'],
+    ['insert get count delete', 'เช่น insertRegistration countRegistrations hasCredit insertCredit insertNotice']]],
+  'helpers/seed_data.dart': [1, 'ข้อมูลตัวอย่างที่ใส่ตอนสร้างฐานข้อมูลครั้งแรก ทุกเครื่องจึงมีกิจกรรมและหน่วยงานตรงกัน QR จึงใช้ข้ามเครื่องได้', [
+    ['seedOrgs', 'รหัสหน่วยงานกับชื่อ เช่น NUVOL26'],
+    ['seedActivities() seedRegistrations()', 'กิจกรรมและรายชื่อตัวอย่าง'],
+    ['demoActivityId', 'กิจกรรมบริจาคโลหิตที่ใช้สาธิตสแกน']]],
+  'models/activity.dart': [1, 'หน้าตาข้อมูลกิจกรรม 12 ช่อง เช่น ชื่อ ประเภท เวลาเริ่ม เวลาจบ ชั่วโมง จำนวนคน', [
+    ['isOngoing() isPast()', 'เทียบกับเวลาตอนนี้'],
+    ['toMap() fromMap()', 'แปลงกับแถวใน SQLite เวลาเก็บเป็น millisecondsSinceEpoch']]],
+  'models/student.dart': [1, 'นิสิต รหัส ชื่อ คณะ และ pinHash', [['toMap() fromMap()', 'แปลงกับตาราง students']]],
+  'models/registration.dart': [1, 'การลงทะเบียน 1 คนต่อ 1 กิจกรรม เก็บชื่อและคณะไว้ด้วย เพราะเครื่องผู้คุมอาจไม่มีบัญชีของนิสิตคนนั้น', [['toMap() fromMap()', 'แปลงกับตาราง registrations']]],
+  'models/credit.dart': [1, 'ชั่วโมงที่ได้ 1 รายการ วิธียืนยัน ระยะ เลขอ้างอิง และเวลา', [['toMap() fromMap()', 'แปลงกับตาราง credits']]],
+  'models/announcement.dart': [1, 'ประกาศจากผู้คุม 1 ข้อความ', [['toMap() fromMap()', 'แปลงกับตาราง announcements']]],
+  'models/app_notice.dart': [1, 'แจ้งเตือน 1 รายการ มี isRead บอกว่าอ่านแล้วหรือยัง', [['toMap() fromMap()', 'แปลงกับตาราง notices']]],
+  'models/claim_result.dart': [1, 'ผลการสแกน success message และ credit ถ้าสำเร็จ ไม่ได้เก็บลงฐานข้อมูล ใช้ส่งผลจาก claim_service ไปหน้าผล', []],
+  'widgets/activity_card.dart': [4, 'การ์ดกิจกรรม ใช้ Stack วางป้ายสถานะทับโปสเตอร์ รับข้อมูลทาง constructor ไม่เรียก Provider เอง จึงเขียน widget test ง่าย', [
+    ['ActivityCard(activity, statusText, statusColor, onTap)', 'ข้อความกับสีป้ายส่งมาจากหน้าแรก']]],
+  'utils/constants.dart': [1, 'ค่าคงที่ ประเภทกิจกรรม วิธียืนยัน ระยะ 200 ม. อายุ QR 15 วิ เปลี่ยนทุก 10 วิ kQrSecret และรายชื่อคณะ แก้ตัวเลขที่นี่ที่เดียว', []],
+  'utils/thai_date.dart': [1, 'แสดงวันที่แบบไทย พ.ศ.', [['thaiDate() thaiTime() thaiDateRange()', 'วันที่ เวลา และช่วงเวลา'], ['hoursText()', 'เช่น 3 ชม.']]],
+  'utils/validators.dart': [1, 'validator ของฟอร์ม คืนข้อความ error หรือ null', [['validateStudentId()', 'ตัวเลข 8 หลัก'], ['validatePin()', 'ตัวเลข 6 หลัก'], ['validateRequired() validatePositiveNumber()', 'ห้ามว่าง และต้องมากกว่า 0']]],
+  'test/validators_test.dart': [1, 'unit test 5 ข้อ รหัสนิสิตและ PIN ถูกผิด', []],
+  'test/qr_service_test.dart': [2, 'unit test 4 ข้อ อ่าน QR กลับได้ แก้ชั่วโมงแล้วไม่ผ่าน QR อื่นไม่ผ่าน และคำนวณอายุถูก', []],
+  'test/excel_export_test.dart': [3, 'unit test makeRows ครบทุกคน ทุกคอลัมน์ และสถานะถูก', []],
+  'test/activity_card_test.dart': [4, 'widget test การ์ดแสดงชื่อ ประเภท ป้าย และกดแล้ว onTap ถูกเรียก', []],
+};
+const FM_GROUPS = [
+  ['จุดเริ่มแอพ', 'เปิดแอพ เลือกหน้า ตั้งชื่อหน้า', ['main.dart', 'app/routes.dart', 'app/theme.dart']],
+  ['หน้าจอนิสิต', 'แสดงผลและรับการกด', ['screens/student/welcome_screen.dart', 'screens/student/student_shell.dart', 'screens/student/home_screen.dart', 'screens/student/activity_detail_screen.dart', 'screens/student/mine_screen.dart', 'screens/student/scan_screen.dart', 'screens/student/claim_result_screen.dart', 'screens/student/inbox_screen.dart', 'screens/student/profile_screen.dart']],
+  ['หน้าจอผู้คุม', 'แสดงผลและรับการกด', ['screens/supervisor/sup_login_screen.dart', 'screens/supervisor/sup_home_screen.dart', 'screens/supervisor/activity_editor_screen.dart', 'screens/supervisor/manage_screen.dart', 'screens/supervisor/qr_presenter_screen.dart']],
+  ['Provider', 'ถือข้อมูลที่หลายหน้าใช้ เปลี่ยนแล้วบอกหน้าจอ', ['providers/auth_provider.dart', 'providers/credit_provider.dart', 'providers/notice_provider.dart', 'providers/activity_provider.dart', 'providers/supervisor_provider.dart']],
+  ['Service', 'งานเฉพาะทาง QR GPS Excel', ['services/qr_service.dart', 'services/location_service.dart', 'services/claim_service.dart', 'services/excel_export_service.dart']],
+  ['ฐานข้อมูล', 'คุยกับ SQLite', ['helpers/database_helper.dart', 'helpers/seed_data.dart']],
+  ['Model', 'หน้าตาของข้อมูลแต่ละชนิด', ['models/activity.dart', 'models/student.dart', 'models/registration.dart', 'models/credit.dart', 'models/announcement.dart', 'models/app_notice.dart', 'models/claim_result.dart']],
+  ['ชิ้นส่วนและเครื่องมือ', 'ใช้ซ้ำหลายหน้า', ['widgets/activity_card.dart', 'utils/constants.dart', 'utils/thai_date.dart', 'utils/validators.dart']],
+  ['Test', 'รันด้วย flutter test ผ่าน 11 ข้อ', ['test/validators_test.dart', 'test/qr_service_test.dart', 'test/excel_export_test.dart', 'test/activity_card_test.dart']],
 ];
-function buildTree(items) {
-  const ul = document.createElement('ul');
-  for (const item of items) {
-    const li = document.createElement('li');
-    if (Array.isArray(item[1])) {
-      li.innerHTML = `<div class="folder">${item[0]}/</div>`;
-      li.append(buildTree(item[1]));
-    } else {
-      const [name, owner, desc] = item;
-      li.className = 'file';
-      li.dataset.o = owner;
-      li.style.setProperty('--c', color(owner));
-      li.innerHTML = `<i></i><code>${name}</code><span>${desc}</span>`;
-    }
-    ul.append(li);
+const USES = {}, USED_BY = {};
+for (const f of Object.keys(IMPORTS)) { USES[f] = IMPORTS[f] ? IMPORTS[f].split(' ') : []; USED_BY[f] = USED_BY[f] || []; }
+for (const [f, list] of Object.entries(USES)) for (const t of list) (USED_BY[t] = USED_BY[t] || []).push(f);
+const short = f => f.split('/').pop();
+const fmGroups = document.getElementById('fmGroups');
+const fmPanel = document.getElementById('fmPanel');
+const fbtns = {};
+let fmSel = 'main.dart';
+for (const [title, sub, files] of FM_GROUPS) {
+  const g = document.createElement('div');
+  g.className = 'fm-group';
+  g.innerHTML = `<h3>${title}<small>${sub}</small></h3>`;
+  for (const f of files) {
+    const b = document.createElement('button');
+    b.className = 'fbtn';
+    b.dataset.o = FILES[f][0];
+    b.style.setProperty('--c', color(FILES[f][0]));
+    b.title = 'lib/' + f;
+    b.innerHTML = `<i></i><span>${short(f)}</span><em></em>`;
+    b.addEventListener('click', () => pickFile(f, true));
+    g.append(b);
+    fbtns[f] = b;
   }
-  return ul;
+  fmGroups.append(g);
 }
-document.getElementById('tree').append(buildTree(TREE));
+function relChips(list) {
+  if (!list.length) return '<span class="none">ไม่มี</span>';
+  return list.map(f => `<button class="fbtn" data-go="${f}" style="--c:${color(FILES[f][0])}"><i></i><span>${short(f)}</span></button>`).join('');
+}
+function pickFile(f, fromClick) {
+  fmSel = f;
+  const [owner, desc, funcs] = FILES[f];
+  const uses = USES[f].filter(x => !BASIC.includes(x) || BASIC.includes(f));
+  const basic = USES[f].filter(x => BASIC.includes(x) && !BASIC.includes(f));
+  const by = USED_BY[f] || [];
+  const nav = NAV[f] || [];
+  for (const [k, b] of Object.entries(fbtns)) {
+    b.classList.remove('sel', 'use', 'by', 'nav');
+    let tag = '';
+    if (k === f) b.classList.add('sel');
+    else if (nav.includes(k)) { b.classList.add('nav'); tag = 'เปิดหน้า'; }
+    else if (uses.includes(k)) { b.classList.add('use'); tag = 'เรียกใช้'; }
+    else if (by.includes(k)) { b.classList.add('by'); tag = 'ใช้ไฟล์นี้'; }
+    b.querySelector('em').textContent = tag;
+  }
+  const path = f.startsWith('test/') ? f : 'lib/' + f;
+  fmPanel.style.setProperty('--c', color(owner));
+  fmPanel.innerHTML = `
+    <h3>${path}</h3>
+    <div class="owner">เจ้าของ <b>${M[owner].name}</b> ${M[owner].gh}</div>
+    <p>${desc}</p>
+    ${funcs.length ? `<dl class="fm-funcs">${funcs.map(([n, d]) => `<div><dt>${esc(n)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl>` : ''}
+    <div class="fm-rel"><h4>ไฟล์นี้เรียกใช้</h4><div class="row">${relChips(uses)}</div></div>
+    <div class="fm-rel"><h4>ไฟล์ที่เรียกใช้ไฟล์นี้</h4><div class="row">${relChips(by)}</div></div>
+    ${nav.length ? `<div class="fm-rel"><h4>เปิดไปหน้า</h4><div class="row">${relChips(nav)}</div></div>` : ''}
+    ${basic.length ? `<p class="fm-basic">ใช้ไฟล์พื้นฐานด้วย ${basic.map(short).join(' ')}</p>` : ''}`;
+  fmPanel.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => pickFile(b.dataset.go, true)));
+  const narrow = matchMedia('(max-width: 899px)').matches;
+  if (narrow) fbtns[f].closest('.fm-group').after(fmPanel);
+  else if (fmPanel.parentElement !== document.getElementById('fm')) document.getElementById('fm').append(fmPanel);
+  if (fromClick && narrow) fmPanel.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+pickFile(fmSel, false);
+
 
 // ---------- commit ----------
 const COMMITS = [
